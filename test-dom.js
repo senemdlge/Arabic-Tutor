@@ -59,6 +59,16 @@ if (!$("#dersIcerik").querySelector(".kelime-kart")) fail("Ders içeriği boş")
 if ($("#dersSecimi").options.length !== 27) fail("Ders seçici 27 ders listelemiyor: " + $("#dersSecimi").options.length);
 ok("Açılış: bugün paneli + ders yüklendi");
 
+// --- 1b. Günlük hedefler tıklanabilir ---
+const hedefQuiz = $('#hedefListesi [data-hedef="quiz"]');
+if (!hedefQuiz) fail("Hedef linkleri yok");
+else {
+  hedefQuiz.click();
+  if (!$("#panel-pratik").classList.contains("active")) fail("Quiz hedefi Pratik sekmesine götürmedi");
+  else ok("Günlük hedefler ilgili bölümlere linkli");
+  tikla('.tab[data-tab="bugun"]', "bugüne dön");
+}
+
 // --- 2. Sekme gezintisi ---
 for (const tab of ["ders", "pratik", "konusma", "cevirmen", "rehber", "ajanda", "bugun"]) {
   tikla(`.tab[data-tab="${tab}"]`, "sekme " + tab);

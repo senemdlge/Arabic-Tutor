@@ -319,12 +319,82 @@ function anadilSeslendir(metin) {
 // ===================== KONUŞMA TANIMA (STT) =====================
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// Dinleme yönlendirici: OpenAI anahtarı varsa Whisper tabanlı çözümleme (çok daha doğru Arapça),
+// yoksa tarayıcının yerleşik tanıması.
+function dinle(opts) {
+  if (S.oaiKey && navigator.mediaDevices && window.MediaRecorder) return kayitDinle(opts);
+  return tarayiciDinle(opts);
+}
+
+// OpenAI ile: mikrofon kaydı + gpt-4o-mini-transcribe çözümlemesi
+function kayitDinle({ dil, durumEl, sonuc, bitti }) {
+  let rec = null, durduruldu = false, timer = null, stream = null;
+  const durdur = () => {
+    durduruldu = true;
+    clearTimeout(timer);
+    if (rec && rec.state !== "inactive") { try { rec.stop(); } catch (e) {} }
+  };
+  (async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${t("err_izin")}</div>`;
+      if (bitti) bitti();
+      return;
+    }
+    if (durduruldu) { stream.getTracks().forEach(tr => tr.stop()); if (bitti) bitti(); return; }
+    if (durumEl) durumEl.innerHTML = `<div class="dinleme-durum">${t("dinliyorum")}</div>`;
+    const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+               : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "";
+    rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    const parcalar = [];
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) parcalar.push(e.data); };
+    rec.onstop = async () => {
+      stream.getTracks().forEach(tr => tr.stop());
+      const blob = new Blob(parcalar, { type: rec.mimeType || "audio/webm" });
+      if (blob.size < 1500) {
+        if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc orta">${t("err_duyamadim")}</div>`;
+        if (bitti) bitti();
+        return;
+      }
+      if (durumEl) durumEl.innerHTML = `<div class="dinleme-durum">${t("cozumleniyor")}</div>`;
+      try {
+        const fd = new FormData();
+        fd.append("file", blob, "konusma." + (blob.type.includes("mp4") ? "mp4" : "webm"));
+        fd.append("model", "gpt-4o-mini-transcribe");
+        fd.append("language", dil.slice(0, 2));
+        const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + S.oaiKey },
+          body: fd
+        });
+        if (!res.ok) throw new Error("stt " + res.status);
+        const data = await res.json();
+        const metin = (data.text || "").trim();
+        if (!metin) {
+          if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc orta">${t("err_duyamadim")}</div>`;
+        } else {
+          if (durumEl) durumEl.innerHTML = "";
+          sonuc([metin]);
+        }
+      } catch (e) {
+        if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${t("oai_stt_hata")}</div>`;
+      }
+      if (bitti) bitti();
+    };
+    rec.start();
+    timer = setTimeout(durdur, 6000); // 6 sn sonra otomatik bitir
+  })();
+  return durdur;
+}
+
+// Tarayıcının yerleşik tanıması (anahtarsız mod)
 // iOS Safari dahil tüm tarayıcılarda güvenilir dinleme:
 // - interimResults açık (iOS sonuçları parça parça verir), tüm adaylar biriktirilir
 // - değerlendirme dinleme BİTİNCE yapılır (erken "geçme" olmaz)
 // - konuşma bittikten ~1.5 sn sonra veya 10 sn'de otomatik durur; mikrofona tekrar basınca elle durur
 // Dönüş: durdurma fonksiyonu
-function dinle({ dil, durumEl, sonuc, bitti }) {
+function tarayiciDinle({ dil, durumEl, sonuc, bitti }) {
   if (!SpeechRec) {
     if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${t("err_destek")}</div>`;
     if (bitti) bitti();
@@ -334,6 +404,8 @@ function dinle({ dil, durumEl, sonuc, bitti }) {
   let kapandi = false;
   let hataGosterildi = false;
   const r = new SpeechRec();
+  // iOS'un yerleşik tanıması ar-EG'yi bilmiyor; Arapça için ar-SA kullan
+  if (/^ar/.test(dil) && /iPad|iPhone|iPod/.test(navigator.userAgent)) dil = "ar-SA";
   r.lang = dil;
   r.interimResults = true;
   r.continuous = true;
@@ -518,10 +590,19 @@ function bugunuCiz() {
   const durumlar = { ders: h.ders, quiz: h.quiz, konusma: h.konusma >= 3, dinleme: h.dinleme >= 10 };
   const ilerlemeYazi = { konusma: `${Math.min(h.konusma, 3)}/3`, dinleme: `${Math.min(h.dinleme, 10)}/10` };
   $("#hedefListesi").innerHTML = GUNLUK_HEDEFLER.map(g => `
-    <li class="${durumlar[g.id] ? "tamam" : ""}">
-      <span>${durumlar[g.id] ? "✅" : "⬜"} ${cAl(g.baslik)} ${ilerlemeYazi[g.id] ? `<small>(${ilerlemeYazi[g.id]})</small>` : ""}</span>
+    <li class="${durumlar[g.id] ? "tamam" : ""}" data-hedef="${g.id}" style="cursor:pointer">
+      <span>${durumlar[g.id] ? "✅" : "⬜"} ${cAl(g.baslik)} ${ilerlemeYazi[g.id] ? `<small>(${ilerlemeYazi[g.id]})</small>` : ""} <span style="opacity:.45">›</span></span>
       <span class="xp">+${g.xp} XP</span>
     </li>`).join("");
+  // Hedefe dokununca ilgili bölüme git
+  $("#hedefListesi").querySelectorAll("[data-hedef]").forEach(li => {
+    li.onclick = () => {
+      const id = li.dataset.hedef;
+      if (id === "ders" || id === "dinleme") { dersAc(gununDersi().id); sekmeyeGit("ders"); }
+      if (id === "quiz") sekmeyeGit("pratik");
+      if (id === "konusma") sekmeyeGit("konusma");
+    };
+  });
 
   $("#gunTamamMsg").classList.toggle("hidden", !h.tamamlandi);
 
