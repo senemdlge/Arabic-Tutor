@@ -65,19 +65,26 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 header h1 {
-  font-size: 1.15rem; margin: 0; white-space: nowrap;
+  font-size: 1rem; margin: 0; white-space: nowrap;
   font-weight: 800; letter-spacing: -.02em;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1;
 }
-.header-stats { display: flex; gap: 6px; align-items: center; font-weight: 700; }
+.header-stats { display: flex; gap: 4px; align-items: center; font-weight: 700; flex-shrink: 0; }
 .header-stats span {
   background: rgba(255,255,255,.16);
   border: 1px solid rgba(255,255,255,.18);
-  backdrop-filter: blur(8px);
-  padding: 4px 10px; border-radius: 999px; font-size: .78rem; white-space: nowrap;
+  padding: 3px 7px; border-radius: 999px; font-size: .72rem; white-space: nowrap;
 }
-#settingsBtn { background: none; border: none; font-size: 1.25rem; cursor: pointer; padding: 2px; }
+#dilBtn {
+  background: rgba(255,255,255,.28); border: none; border-radius: 999px;
+  padding: 4px 9px; font-size: .72rem; font-weight: 800; color: #fff;
+  cursor: pointer; font-family: inherit; flex-shrink: 0;
+}
+#settingsBtn { background: none; border: none; font-size: 1.15rem; cursor: pointer; padding: 0 2px; flex-shrink: 0; }
 
 /* ---------- Alt navigasyon ---------- */
 nav#tabs {

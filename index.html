@@ -77,6 +77,7 @@
       <div class="mod-izgara">
         <button class="mod-kart" id="modTelaffuz"><span class="mod-ikon">🗣️</span><b data-i18n="telaffuz">Telaffuz Pratiği</b><small data-i18n="telaffuz_alt">Kelimeyi söyle, puan al</small></button>
         <button class="mod-kart" id="modDiyalog"><span class="mod-ikon">💬</span><b data-i18n="diyalog">Sesli Diyalog</b><small data-i18n="diyalog_alt">Uygulamayla konuş!</small></button>
+        <button class="mod-kart" id="modAiHoca" style="grid-column:1/-1"><span class="mod-ikon">🤖</span><b data-i18n="ai_hoca">AI Hoca (ChatGPT)</b><small data-i18n="ai_hoca_alt">Gerçek sohbet — o Arapça cevap verir, sesiyle okur</small></button>
       </div>
     </div>
     <div id="telaffuzAlani" class="hidden">
@@ -85,6 +86,18 @@
       <div id="konusmaAlani"></div>
     </div>
     <div id="diyalogAlani" class="hidden"></div>
+    <div id="aiAlani" class="hidden">
+      <button class="btn geri" data-geri="konusma" data-i18n="geri">← Geri</button>
+      <div id="aiBalonlar"></div>
+      <div class="diyalog-sira" style="position:static">
+        <div style="display:flex;gap:8px">
+          <input type="text" id="aiGirdi" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--cizgi);background:var(--kart);color:var(--metin);font-family:inherit;font-size:1rem">
+          <button class="btn mic" id="aiMic">🎤</button>
+          <button class="btn primary" id="aiGonder" data-i18n="ai_gonder">Gönder</button>
+        </div>
+        <div id="aiDurum"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ÇEVİRMEN -->
@@ -182,6 +195,10 @@
     <input type="password" id="ayarOaiKey" placeholder="sk-..." style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--cizgi);background:var(--kart);color:var(--metin);font-family:inherit">
     <small class="ipucu" data-i18n="openai_ipucu">platform.openai.com'dan anahtar al, buraya yapıştır. Boşsa tarayıcı sesi kullanılır.</small>
   </label>
+  <div class="ayar-btnler">
+    <button class="btn" id="yedekAl" data-i18n="yedek_al">📥 Yedek Al</button>
+    <button class="btn" id="yedekYukle" data-i18n="yedek_yukle">📤 Yedek Yükle</button>
+  </div>
   <div class="ayar-btnler">
     <button class="btn danger" id="ayarSifirla" data-i18n="sifirla">İlerlemeyi Sıfırla</button>
     <button class="btn primary" id="ayarKapat" data-i18n="kapat">Kapat</button>

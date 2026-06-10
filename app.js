@@ -319,49 +319,73 @@ function anadilSeslendir(metin) {
 // ===================== KONUŞMA TANIMA (STT) =====================
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// iOS Safari dahil tüm tarayıcılarda güvenilir dinleme:
+// - interimResults açık (iOS sonuçları parça parça verir), tüm adaylar biriktirilir
+// - değerlendirme dinleme BİTİNCE yapılır (erken "geçme" olmaz)
+// - konuşma bittikten ~1.5 sn sonra veya 10 sn'de otomatik durur; mikrofona tekrar basınca elle durur
+// Dönüş: durdurma fonksiyonu
 function dinle({ dil, durumEl, sonuc, bitti }) {
   if (!SpeechRec) {
     if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${t("err_destek")}</div>`;
     if (bitti) bitti();
-    return;
+    return null;
   }
-  let sonucGeldi = false;
+  const adaylar = new Set();
+  let kapandi = false;
+  let hataGosterildi = false;
   const r = new SpeechRec();
   r.lang = dil;
-  r.interimResults = false;
+  r.interimResults = true;
+  r.continuous = true;
   r.maxAlternatives = 5;
 
   if (durumEl) durumEl.innerHTML = `<div class="dinleme-durum">${t("dinliyorum")}</div>`;
 
-  const guvenlik = setTimeout(() => { try { r.stop(); } catch (e) {} }, 8000);
+  const durdur = () => { try { r.stop(); } catch (e) {} };
+  const guvenlik = setTimeout(durdur, 10000);
+  let sessizlik = null;
 
   r.onresult = (e) => {
-    sonucGeldi = true;
-    clearTimeout(guvenlik);
-    const alternatifler = [];
-    for (let i = 0; i < e.results[0].length; i++) alternatifler.push(e.results[0][i].transcript);
-    sonuc(alternatifler);
+    for (let i = 0; i < e.results.length; i++) {
+      for (let j = 0; j < e.results[i].length; j++) {
+        const tx = (e.results[i][j].transcript || "").trim();
+        if (tx) adaylar.add(tx);
+      }
+    }
+    // Konuşma geldikten 1.5 sn sonra kendiliğinden bitir
+    clearTimeout(sessizlik);
+    sessizlik = setTimeout(durdur, 1500);
   };
   r.onerror = (e) => {
-    sonucGeldi = true;
-    clearTimeout(guvenlik);
+    if (adaylar.size) return; // sonuç zaten var, hatayı yut
+    hataGosterildi = true;
     let msg = t("err_hata") + " " + e.error;
     if (e.error === "not-allowed" || e.error === "service-not-allowed") msg = t("err_izin");
     if (e.error === "no-speech") msg = t("err_ses_yok");
     if (e.error === "network") msg = t("err_ag");
     if (e.error === "language-not-supported") msg = t("err_dil");
+    if (e.error === "aborted") { hataGosterildi = false; return; }
     if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${msg}</div>`;
   };
   r.onend = () => {
     clearTimeout(guvenlik);
-    if (!sonucGeldi && durumEl && durumEl.querySelector(".dinleme-durum"))
+    clearTimeout(sessizlik);
+    if (kapandi) return;
+    kapandi = true;
+    if (adaylar.size) {
+      if (durumEl && durumEl.querySelector(".dinleme-durum")) durumEl.innerHTML = "";
+      sonuc([...adaylar]);
+    } else if (!hataGosterildi && durumEl) {
       durumEl.innerHTML = `<div class="telaffuz-sonuc orta">${t("err_duyamadim")}</div>`;
+    }
     if (bitti) bitti();
   };
   try { r.start(); } catch (e) {
     if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${t("err_baslat")}</div>`;
     if (bitti) bitti();
+    return null;
   }
+  return durdur;
 }
 
 function arapcaNormalize(s) {
@@ -461,13 +485,6 @@ function gununDersi() {
   return dersler.find(d => !S.bitenDersler[d.id]) || dersler[dersler.length - 1];
 }
 
-function iosMu() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-function standaloneMu() {
-  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-}
-
 function bugunuCiz() {
   gunlukHedefHazirla();
   const saat = new Date().getHours();
@@ -521,20 +538,6 @@ function bugunuCiz() {
     : t("srs_yok");
   if (bekleyen) $("#srsGit").onclick = () => { sekmeyeGit("pratik"); flashcardBaslat(); };
 
-  // iPhone'a kurulum ipucu
-  const eskiBanner = $("#iosBanner");
-  if (eskiBanner) eskiBanner.remove();
-  if (S.iosBanner && iosMu() && !standaloneMu()) {
-    const div = document.createElement("div");
-    div.className = "kutla";
-    div.id = "iosBanner";
-    div.innerHTML = (S.dil === "en"
-      ? `📲 <b>Install as an app:</b> in Safari tap the <b>Share</b> button (square with ↑), then <b>"Add to Home Screen"</b>. It opens full-screen with its own icon!`
-      : `📲 <b>Uygulama olarak kur:</b> Safari'de alttaki <b>Paylaş</b> tuşuna (↑ işaretli kare) bas, sonra <b>"Ana Ekrana Ekle"</b>'yi seç. Kendi ikonuyla tam ekran açılır!`)
-      + ` <button class="btn" id="iosBannerKapat" style="margin-top:8px">✕</button>`;
-    $("#selamlama").after(div);
-    $("#iosBannerKapat").onclick = () => { S.iosBanner = false; kaydet(); div.remove(); };
-  }
 }
 
 // ===================== DERS PANELİ =====================
@@ -580,9 +583,10 @@ function kelimeKartiBagla(kapsayici, item, key) {
   const micBtn = kapsayici.querySelector(`[data-rol="soyle"][data-key="${key}"]`);
   const alan = kapsayici.querySelector(`.telaffuz-alani[data-key="${key}"]`);
   micBtn.onclick = () => {
+    if (micBtn._durdur) { micBtn._durdur(); return; } // ikinci dokunuş: dinlemeyi bitir
     micBtn.classList.add("dinliyor");
     micBtn.textContent = "👂";
-    dinle({
+    micBtn._durdur = dinle({
       dil: "ar-EG",
       durumEl: alan,
       sonuc: (alternatifler) => {
@@ -593,7 +597,7 @@ function kelimeKartiBagla(kapsayici, item, key) {
         if (skor >= 60) { hedefTamamla("konusma"); titret(40); }
         else titret([60, 40, 60]);
       },
-      bitti: () => { micBtn.classList.remove("dinliyor"); micBtn.textContent = "🎤"; }
+      bitti: () => { micBtn._durdur = null; micBtn.classList.remove("dinliyor"); micBtn.textContent = "🎤"; }
     });
   };
 }
@@ -869,6 +873,7 @@ let dlg = null;
 function diyalogMenuGoster() {
   $("#konusmaMenu").classList.add("hidden");
   $("#telaffuzAlani").classList.add("hidden");
+  $("#aiAlani").classList.add("hidden");
   const alan = $("#diyalogAlani");
   alan.classList.remove("hidden");
   alan.innerHTML = `
@@ -941,8 +946,9 @@ function diyalogAdim() {
     $("#dlgAtla").onclick = () => { balonEkle(adim); dlg.adim++; $("#dlgSira").innerHTML = ""; diyalogAdim(); };
     $("#dlgMic").onclick = () => {
       const mic = $("#dlgMic");
+      if (mic._durdur) { mic._durdur(); return; }
       mic.classList.add("dinliyor");
-      dinle({
+      mic._durdur = dinle({
         dil: "ar-EG",
         durumEl: $("#dlgDurum"),
         sonuc: (alternatifler) => {
@@ -960,7 +966,7 @@ function diyalogAdim() {
             $("#dlgDurum").innerHTML = `<div class="telaffuz-sonuc orta">${tf("dlg_yanlis", { s: skor })}<div class="duyulan">${t("duydugum")} "${arapcaOkunus(alternatifler[0]) || alternatifler[0]}"</div></div>`;
           }
         },
-        bitti: () => mic.classList.remove("dinliyor")
+        bitti: () => { mic._durdur = null; mic.classList.remove("dinliyor"); }
       });
     };
   }
@@ -980,6 +986,98 @@ function balonEkle(adim) {
   kap.appendChild(div);
   div.scrollIntoView({ behavior: "smooth", block: "end" });
 }
+
+// ===================== 🤖 AI HOCA (ChatGPT sohbeti) =====================
+let aiGecmis = [];
+
+function aiHocaAc() {
+  $("#konusmaMenu").classList.add("hidden");
+  $("#telaffuzAlani").classList.add("hidden");
+  $("#diyalogAlani").classList.add("hidden");
+  $("#aiAlani").classList.remove("hidden");
+  $("#aiGirdi").placeholder = t("ai_placeholder");
+  geriButonlariBagla();
+  if (!S.oaiKey) {
+    $("#aiDurum").innerHTML = `<div class="telaffuz-sonuc orta">${t("ai_anahtar_gerek")}</div>`;
+    return;
+  }
+  $("#aiDurum").innerHTML = "";
+  if (!$("#aiBalonlar").children.length) {
+    aiBalonEkle("app", { tr: "", anlam: t("ai_hosgeldin"), ar: "" });
+  }
+}
+
+function aiBalonEkle(rol, { ar, tr, anlam }) {
+  const kap = $("#aiBalonlar");
+  const div = document.createElement("div");
+  div.className = "diyalog-balon " + (rol === "app" ? "app" : "sen");
+  div.innerHTML = `
+    <div class="balon">
+      <div class="kisi">${rol === "app" ? t("ai_hoca_adi") : t("sen")}</div>
+      ${tr ? `<div class="okunus">${tr}</div>` : ""}
+      <div class="anlam">${anlam || ""}</div>
+      ${ar ? `<div class="arapca-yazi">${ar}</div>` : ""}
+    </div>`;
+  if (ar) div.querySelector(".balon").onclick = () => seslendir(ar);
+  kap.appendChild(div);
+  div.scrollIntoView({ behavior: "smooth", block: "end" });
+}
+
+async function aiGonderMesaj(mesaj) {
+  if (!mesaj.trim()) return;
+  if (!S.oaiKey) {
+    $("#aiDurum").innerHTML = `<div class="telaffuz-sonuc orta">${t("ai_anahtar_gerek")}</div>`;
+    return;
+  }
+  aiBalonEkle("sen", { tr: "", anlam: mesaj, ar: "" });
+  $("#aiGirdi").value = "";
+  $("#aiDurum").innerHTML = `<div class="dinleme-durum">${t("ai_dusunuyor")}</div>`;
+  aiGecmis.push({ role: "user", content: mesaj });
+  const anaDil = S.dil === "en" ? "English" : "Turkish";
+  const sistem = `You are a warm, encouraging Egyptian Arabic tutor chatting with a beginner whose native language is ${anaDil}. Carry a natural conversation and ask simple follow-up questions. ALWAYS reply with 1-2 SHORT Egyptian Arabic sentences suitable for a beginner. Reply STRICTLY in this exact format on a single line:\nARABIC_SCRIPT ||| LATIN_TRANSLITERATION (use ${anaDil === "Turkish" ? "Turkish phonetics, e.g. ş, ğ, izzeyyek" : "English phonetics, e.g. sh, kh, izzayyak"}) ||| ${anaDil} translation (if the user made an Arabic mistake, add a very brief correction here in ${anaDil})\nThe user may write in ${anaDil}, in transliterated Arabic, or in Arabic script.`;
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.7,
+        max_tokens: 200,
+        messages: [{ role: "system", content: sistem }, ...aiGecmis.slice(-12)]
+      })
+    });
+    if (!res.ok) throw new Error("api " + res.status);
+    const data = await res.json();
+    const icerik = (data.choices && data.choices[0].message.content || "").trim();
+    aiGecmis.push({ role: "assistant", content: icerik });
+    const parcalar = icerik.split("|||").map(s => s.trim());
+    const cevap = parcalar.length >= 3
+      ? { ar: parcalar[0], tr: parcalar[1], anlam: parcalar[2] }
+      : { ar: icerik, tr: arapcaOkunus(icerik), anlam: "" };
+    $("#aiDurum").innerHTML = "";
+    aiBalonEkle("app", cevap);
+    if (cevap.ar) seslendir(cevap.ar);
+    S.stats.konusma++; kaydet();
+  } catch (e) {
+    $("#aiDurum").innerHTML = `<div class="telaffuz-sonuc kotu">${t("ai_hata")}</div>`;
+    aiGecmis.pop();
+  }
+}
+
+$("#modAiHoca").onclick = aiHocaAc;
+$("#aiGonder").onclick = () => aiGonderMesaj($("#aiGirdi").value);
+$("#aiGirdi").addEventListener("keydown", (e) => { if (e.key === "Enter") aiGonderMesaj($("#aiGirdi").value); });
+$("#aiMic").onclick = () => {
+  const btn = $("#aiMic");
+  if (btn._durdur) { btn._durdur(); return; }
+  btn.classList.add("dinliyor");
+  btn._durdur = dinle({
+    dil: "ar-EG",
+    durumEl: $("#aiDurum"),
+    sonuc: (alternatifler) => { aiGonderMesaj(alternatifler[0]); },
+    bitti: () => { btn._durdur = null; btn.classList.remove("dinliyor"); }
+  });
+};
 
 // ===================== KONUŞMA PANELİ =====================
 function konusmaCiz() {
@@ -1015,7 +1113,7 @@ function geriButonlariBagla() {
         $("#pratikMenu").classList.remove("hidden");
       }
       if (panel === "konusma") {
-        ["#telaffuzAlani", "#diyalogAlani"].forEach(s => $(s).classList.add("hidden"));
+        ["#telaffuzAlani", "#diyalogAlani", "#aiAlani"].forEach(s => $(s).classList.add("hidden"));
         $("#konusmaMenu").classList.remove("hidden");
       }
     };
@@ -1198,9 +1296,10 @@ function yonGuncelle() {
 
 $("#ceviriMic").onclick = () => {
   const btn = $("#ceviriMic");
+  if (btn._durdur) { btn._durdur(); return; }
   btn.classList.add("dinliyor");
   $("#ceviriDurum").classList.remove("hidden");
-  dinle({
+  btn._durdur = dinle({
     dil: ceviriYonu === "kaynak-ar" ? kaynakKonusmaDili() : "ar-EG",
     durumEl: $("#ceviriDurum"),
     sonuc: (alternatifler) => {
@@ -1209,7 +1308,7 @@ $("#ceviriMic").onclick = () => {
       $("#ceviriDurum").classList.add("hidden");
       ceviriYap();
     },
-    bitti: () => { btn.classList.remove("dinliyor"); }
+    bitti: () => { btn._durdur = null; btn.classList.remove("dinliyor"); }
   });
 };
 
@@ -1256,8 +1355,9 @@ $("#ceviriDinle").onclick = () => {
 $("#ceviriTekrarla").onclick = () => {
   if (!sonCeviri || sonCeviri.dil !== "ar") { toast(t("cev_yon_uyari")); return; }
   const btn = $("#ceviriTekrarla");
+  if (btn._durdur) { btn._durdur(); return; }
   btn.classList.add("dinliyor");
-  dinle({
+  btn._durdur = dinle({
     dil: "ar-EG",
     durumEl: $("#ceviriTelaffuz"),
     sonuc: (alternatifler) => {
@@ -1266,7 +1366,7 @@ $("#ceviriTekrarla").onclick = () => {
         { tr: arapcaOkunus(sonCeviri.metin) }, alternatifler[0]);
       if (skor >= 60) hedefTamamla("konusma");
     },
-    bitti: () => btn.classList.remove("dinliyor")
+    bitti: () => { btn._durdur = null; btn.classList.remove("dinliyor"); }
   });
 };
 
@@ -1408,6 +1508,24 @@ $("#ayarHiz").onchange = (e) => { S.hiz = parseFloat(e.target.value); kaydet(); 
 $("#ayarSes").onchange = (e) => { S.sesURI = e.target.value; kaydet(); };
 $("#ayarDil").onchange = (e) => { dilDegistir(e.target.value); };
 $("#ayarOaiKey").onchange = (e) => { S.oaiKey = e.target.value.trim(); sesOnbellek.clear(); kaydet(); };
+$("#yedekAl").onclick = async () => {
+  const veri = localStorage.getItem("misirca") || "{}";
+  if (navigator.share) {
+    try { await navigator.share({ text: veri }); return; } catch (e) {}
+  }
+  try { await navigator.clipboard.writeText(veri); toast(t("yedek_kopyalandi"), 3500); } catch (e) {}
+};
+$("#yedekYukle").onclick = () => {
+  const metin = prompt(t("yedek_sor"));
+  if (!metin) return;
+  try {
+    const veri = JSON.parse(metin);
+    if (typeof veri.xp !== "number") throw new Error("gecersiz");
+    localStorage.setItem("misirca", metin);
+    toast(t("yedek_tamam"));
+    setTimeout(() => location.reload(), 800);
+  } catch (e) { toast(t("yedek_hata")); }
+};
 $("#ayarSifirla").onclick = () => {
   if (confirm(t("sifir_onay"))) {
     localStorage.removeItem("misirca");

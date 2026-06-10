@@ -126,6 +126,13 @@ else {
   else ok("Diyalog başlıyor, balonlar oluşuyor");
 }
 
+// --- 8b. AI Hoca (anahtarsız: uyarı göstermeli) ---
+tikla("#modAiHoca", "AI hoca");
+if ($("#aiAlani").classList.contains("hidden")) fail("AI ekranı açılmadı");
+if (!$("#aiDurum").textContent.includes("OpenAI")) fail("Anahtar uyarısı görünmedi: " + $("#aiDurum").textContent);
+else ok("AI Hoca: anahtar yokken yönlendirme gösteriliyor");
+tikla('#aiAlani [data-geri]', "ai çık");
+
 // --- 9. Dil değiştirme (EN) ---
 tikla("#dilBtn", "dil düğmesi");
 const enTab = $('.tab[data-tab="bugun"] em').textContent;
