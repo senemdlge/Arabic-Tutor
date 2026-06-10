@@ -1,6 +1,6 @@
 /* Saudi Survival App — basit önbellek: dersler internetsiz de çalışsın */
-const CACHE = "saudi-survival-v3";
-const DOSYALAR = ["./", "./index.html", "./style.css", "./app.js", "./data.js", "./manifest.json", "./icon.svg", "./icon-180.png"];
+const CACHE = "saudi-survival-v4";
+const DOSYALAR = ["./", "./index.html", "./style.css", "./app.js", "./data.js", "./en.js", "./manifest.json", "./icon.svg", "./icon-180.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(DOSYALAR)).then(() => self.skipWaiting()));

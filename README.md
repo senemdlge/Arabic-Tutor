@@ -6,6 +6,13 @@ Harf öğrenmeye gerek yok — her şey **Türkçe okunuşuyla** yazılır (ör.
 
 ## Özellikler
 
+- 🌍 **İki dilli**: arayüz ve tüm içerik Türkçe + İngilizce (üst bardaki TR/EN düğmesiyle anında geçiş; İngilizce modda okunuşlar da İngilizce fonetiğe çevrilir: *şukran → shukran*)
+- 🗣️ **Doğal ses (isteğe bağlı)**: ayarlara OpenAI API anahtarı girersen kelimeler ChatGPT'nin doğal sesiyle (gpt-4o-mini-tts) okunur; girmezsen tarayıcı sesi kullanılır
+- ⚡ **Hız Turu**: 60 saniyede kaç doğru yapabilirsin?
+- 🔢 **Sayı Antrenörü**: 0-999 arası her sayının Arapça okunuşu — pazarlık için! (125 → *miyya ve hamse ve işriin*)
+- ▶️ **Dersi baştan sona dinle**: yolda/sporda dinlemek için otomatik çalma
+- 📆 **Aktivite takvimi** ve 📤 ilerleme paylaşma
+
 - 📅 **Günlük hedefler** (~15 dk/gün): günün dersi, quiz, konuşma ve dinleme; XP, 🔥 seri ve seviye sistemi (Yeni Başlayan → Yarı Mısırlı 👑)
 - 🗓️ **8 haftalık ajanda**: en çok kullanılan kelimelerden başlayan 26 ders (selamlaşma, sayılar, restoran, pazarlık, **iş hayatı/ofis**) + pekiştirme haftaları, rozetler, istatistikler
 - 🔊 **Sesli okuma** ve 🎤 **telaffuz kontrolü**: mikrofona söyle, % doğruluk puanı al; ne duyduğunu da gösterir

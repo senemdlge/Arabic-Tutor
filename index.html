@@ -17,10 +17,11 @@
   <div class="header-inner">
     <h1>🏜️ Saudi Survival</h1>
     <div class="header-stats">
-      <span id="seviyeBadge" title="Seviyen">🐣</span>
-      <span id="streakBadge" title="Günlük seri">🔥 0</span>
-      <span id="xpBadge" title="Toplam XP">⭐ 0</span>
-      <button id="settingsBtn" title="Ayarlar">⚙️</button>
+      <span id="seviyeBadge" title="Seviye / Level">🐣</span>
+      <span id="streakBadge" title="Seri / Streak">🔥 0</span>
+      <span id="xpBadge" title="XP">⭐ 0</span>
+      <button id="dilBtn" title="Dil / Language">EN</button>
+      <button id="settingsBtn" title="Ayarlar / Settings">⚙️</button>
     </div>
   </div>
 </header>
@@ -31,12 +32,12 @@
     <h2 id="selamlama"></h2>
     <div class="card seviye-karti" id="seviyeKarti"></div>
     <div class="card" id="gununDersiCard"></div>
-    <h3>Günlük Hedefler <small>(~15 dakika)</small></h3>
+    <h3><span data-i18n="gunluk_hedefler">Günlük Hedefler</span> <small data-i18n="dakika">(~15 dakika)</small></h3>
     <ul id="hedefListesi" class="hedef-listesi"></ul>
-    <div id="gunTamamMsg" class="kutla hidden">🎉 <b>Mabruuk!</b> (Tebrikler!) Bugünün tüm hedeflerini tamamladın!</div>
-    <h3>Günün Kelimesi</h3>
+    <div id="gunTamamMsg" class="kutla hidden" data-i18n-html="gun_tamam"></div>
+    <h3 data-i18n="gunun_kelimesi">Günün Kelimesi</h3>
     <div class="card" id="gununKelimesi"></div>
-    <h3>Tekrar Zamanı 🃏</h3>
+    <h3 data-i18n="tekrar_zamani">Tekrar Zamanı 🃏</h3>
     <div class="card" id="srsOzet"></div>
   </section>
 
@@ -51,31 +52,35 @@
   <!-- PRATİK -->
   <section id="panel-pratik" class="panel">
     <div id="pratikMenu">
-      <h2>🧠 Pratik</h2>
+      <h2 data-i18n="pratik">🧠 Pratik</h2>
       <select id="quizDersSecimi"></select>
       <div class="mod-izgara">
-        <button class="mod-kart" id="modAnlam"><span class="mod-ikon">📝</span><b>Anlam Quizi</b><small>Okunuşu gör, anlamı seç</small></button>
-        <button class="mod-kart" id="modDinleme"><span class="mod-ikon">👂</span><b>Dinleme Quizi</b><small>Sesi dinle, anlamı seç</small></button>
-        <button class="mod-kart" id="modEslestirme"><span class="mod-ikon">🧩</span><b>Eşleştirme</b><small>Okunuş ↔ anlam eşleştir</small></button>
-        <button class="mod-kart" id="modFlashcard"><span class="mod-ikon">🃏</span><b>Flashcard Tekrarı</b><small>Akıllı tekrar (zorlandıkların)</small></button>
+        <button class="mod-kart" id="modAnlam"><span class="mod-ikon">📝</span><b data-i18n="anlam_quiz">Anlam Quizi</b><small data-i18n="anlam_quiz_alt">Okunuşu gör, anlamı seç</small></button>
+        <button class="mod-kart" id="modDinleme"><span class="mod-ikon">👂</span><b data-i18n="dinleme_quiz">Dinleme Quizi</b><small data-i18n="dinleme_quiz_alt">Sesi dinle, anlamı seç</small></button>
+        <button class="mod-kart" id="modEslestirme"><span class="mod-ikon">🧩</span><b data-i18n="eslestirme">Eşleştirme</b><small data-i18n="eslestirme_alt">Okunuş ↔ anlam eşleştir</small></button>
+        <button class="mod-kart" id="modFlashcard"><span class="mod-ikon">🃏</span><b data-i18n="flashcard">Flashcard Tekrarı</b><small data-i18n="flashcard_alt">Akıllı tekrar (zorlandıkların)</small></button>
+        <button class="mod-kart" id="modHiz"><span class="mod-ikon">⚡</span><b data-i18n="hiz_turu">Hız Turu</b><small data-i18n="hiz_turu_alt">60 saniyede kaç doğru?</small></button>
+        <button class="mod-kart" id="modSayi"><span class="mod-ikon">🔢</span><b data-i18n="sayi_antrenor">Sayı Antrenörü</b><small data-i18n="sayi_antrenor_alt">Fiyatları ve sayıları öğren</small></button>
       </div>
     </div>
     <div id="quizAlani" class="hidden"></div>
     <div id="eslestirmeAlani" class="hidden"></div>
     <div id="flashcardAlani" class="hidden"></div>
+    <div id="hizAlani" class="hidden"></div>
+    <div id="sayiAlani" class="hidden"></div>
   </section>
 
   <!-- KONUŞMA -->
   <section id="panel-konusma" class="panel">
     <div id="konusmaMenu">
-      <h2>🎤 Konuşma</h2>
+      <h2 data-i18n="konusma">🎤 Konuşma</h2>
       <div class="mod-izgara">
-        <button class="mod-kart" id="modTelaffuz"><span class="mod-ikon">🗣️</span><b>Telaffuz Pratiği</b><small>Kelimeyi söyle, puan al</small></button>
-        <button class="mod-kart" id="modDiyalog"><span class="mod-ikon">💬</span><b>Sesli Diyalog</b><small>Uygulamayla konuş!</small></button>
+        <button class="mod-kart" id="modTelaffuz"><span class="mod-ikon">🗣️</span><b data-i18n="telaffuz">Telaffuz Pratiği</b><small data-i18n="telaffuz_alt">Kelimeyi söyle, puan al</small></button>
+        <button class="mod-kart" id="modDiyalog"><span class="mod-ikon">💬</span><b data-i18n="diyalog">Sesli Diyalog</b><small data-i18n="diyalog_alt">Uygulamayla konuş!</small></button>
       </div>
     </div>
     <div id="telaffuzAlani" class="hidden">
-      <button class="btn geri" data-geri="konusma">← Geri</button>
+      <button class="btn geri" data-geri="konusma" data-i18n="geri">← Geri</button>
       <select id="konusmaDersSecimi"></select>
       <div id="konusmaAlani"></div>
     </div>
@@ -84,29 +89,29 @@
 
   <!-- ÇEVİRMEN -->
   <section id="panel-cevirmen" class="panel">
-    <h2>🌐 Çevirmen</h2>
-    <p class="ipucu">Cümleni yaz ya da söyle — çevirir, okunuşunu yazar, sesli okur.</p>
+    <h2 data-i18n="cevirmen">🌐 Çevirmen</h2>
+    <p class="ipucu" data-i18n="cevirmen_ipucu">Cümleni yaz ya da söyle — çevirir, okunuşunu yazar, sesli okur.</p>
     <div class="cevirmen-yon">
-      <button class="btn yon active" id="yonTrAr">Türkçe → Arapça</button>
-      <button class="btn yon" id="yonArTr">Arapça → Türkçe</button>
+      <button class="btn yon active" id="yonTrAr" data-i18n="yon_kaynak_ar">Türkçe → Arapça</button>
+      <button class="btn yon" id="yonArTr" data-i18n="yon_ar_kaynak">Arapça → Türkçe</button>
     </div>
     <div class="cevirmen-girdi">
-      <textarea id="ceviriGirdi" rows="3" placeholder="Çevrilecek metni yaz... ya da mikrofonla söyle 🎤"></textarea>
+      <textarea id="ceviriGirdi" rows="3"></textarea>
       <div class="cevirmen-btnler">
-        <button class="btn mic" id="ceviriMic">🎤 Söyle</button>
-        <button class="btn primary" id="ceviriYap">Çevir</button>
+        <button class="btn mic" id="ceviriMic" data-i18n="soyle">🎤 Söyle</button>
+        <button class="btn primary" id="ceviriYap" data-i18n="cevir">Çevir</button>
       </div>
-      <div id="ceviriDurum" class="dinleme-durum hidden"></div>
+      <div id="ceviriDurum" class="hidden"></div>
     </div>
     <div id="ceviriSonuc" class="hidden">
       <div class="card ceviri-card">
-        <div class="ceviri-etiket">Çeviri:</div>
+        <div class="ceviri-etiket" data-i18n="ceviri_etiket">Çeviri:</div>
         <div id="ceviriMetin" class="buyuk-metin"></div>
         <div id="ceviriOkunus" class="okunus-not"></div>
         <div id="ceviriArapca" class="arapca-yazi"></div>
         <div class="kelime-btnler" style="margin-top:8px">
-          <button class="btn ses" id="ceviriDinle">🔊 Dinle</button>
-          <button class="btn mic" id="ceviriTekrarla">🎤 Sen Söyle</button>
+          <button class="btn ses" id="ceviriDinle" data-i18n="dinle">🔊 Dinle</button>
+          <button class="btn mic" id="ceviriTekrarla" data-i18n="sen_soyle">🎤 Sen Söyle</button>
         </div>
         <div id="ceviriTelaffuz"></div>
       </div>
@@ -115,56 +120,71 @@
 
   <!-- CEP REHBERİ -->
   <section id="panel-rehber" class="panel">
-    <h2>🆘 Cep Rehberi</h2>
-    <p class="ipucu">Gerçek hayatta sıkışınca: ifadeye dokun, telefon senin yerine Arapça söylesin! 📢</p>
+    <h2 data-i18n="rehber">🆘 Cep Rehberi</h2>
+    <p class="ipucu" data-i18n="rehber_ipucu">Gerçek hayatta sıkışınca: ifadeye dokun, telefon senin yerine Arapça söylesin! 📢</p>
     <div id="rehberKategoriler"></div>
   </section>
 
   <!-- AJANDA -->
   <section id="panel-ajanda" class="panel">
-    <h2>🗓️ Yol Haritası</h2>
+    <h2 data-i18n="yol_haritasi">🗓️ Yol Haritası</h2>
     <div class="genel-ilerleme">
       <div class="bar"><div id="genelBar" class="bar-dolu"></div></div>
       <span id="genelYuzde">%0</span>
     </div>
     <div id="ajandaListesi"></div>
-    <h3>🏅 Rozetler</h3>
+    <h3 data-i18n="aktivite">📆 Son 4 Hafta Aktiviten</h3>
+    <div class="card"><div id="aktiviteTakvim" class="takvim"></div></div>
+    <button class="btn primary" id="paylasBtn" style="width:100%;margin:8px 0" data-i18n="paylas">📤 İlerlemeni Paylaş</button>
+    <h3 data-i18n="rozetler">🏅 Rozetler</h3>
     <div id="rozetler" class="rozetler"></div>
-    <h3>📊 İstatistikler</h3>
+    <h3 data-i18n="istatistikler">📊 İstatistikler</h3>
     <div class="card" id="istatistikler"></div>
   </section>
 </main>
 
 <nav id="tabs">
-  <button class="tab active" data-tab="bugun"><span>📅</span>Bugün</button>
-  <button class="tab" data-tab="ders"><span>📖</span>Ders</button>
-  <button class="tab" data-tab="pratik"><span>🧠</span>Pratik</button>
-  <button class="tab" data-tab="konusma"><span>🎤</span>Konuş</button>
-  <button class="tab" data-tab="cevirmen"><span>🌐</span>Çeviri</button>
-  <button class="tab" data-tab="rehber"><span>🆘</span>Rehber</button>
-  <button class="tab" data-tab="ajanda"><span>🗓️</span>Plan</button>
+  <button class="tab active" data-tab="bugun"><span>📅</span><em data-i18n="tab_bugun">Bugün</em></button>
+  <button class="tab" data-tab="ders"><span>📖</span><em data-i18n="tab_ders">Ders</em></button>
+  <button class="tab" data-tab="pratik"><span>🧠</span><em data-i18n="tab_pratik">Pratik</em></button>
+  <button class="tab" data-tab="konusma"><span>🎤</span><em data-i18n="tab_konus">Konuş</em></button>
+  <button class="tab" data-tab="cevirmen"><span>🌐</span><em data-i18n="tab_ceviri">Çeviri</em></button>
+  <button class="tab" data-tab="rehber"><span>🆘</span><em data-i18n="tab_rehber">Rehber</em></button>
+  <button class="tab" data-tab="ajanda"><span>🗓️</span><em data-i18n="tab_plan">Plan</em></button>
 </nav>
 
 <!-- Ayarlar -->
 <dialog id="settingsDialog">
-  <h3>⚙️ Ayarlar</h3>
+  <h3 data-i18n="ayarlar">⚙️ Ayarlar</h3>
   <label class="ayar-satir">
-    <input type="checkbox" id="ayarArapca"> Arapça yazıyı da göster
+    <span data-i18n="dil">Dil / Language:</span>
+    <select id="ayarDil" style="width:auto;flex:1">
+      <option value="tr">🇹🇷 Türkçe</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
   </label>
   <label class="ayar-satir">
-    <input type="checkbox" id="ayarKaranlik"> 🌙 Karanlık mod
+    <input type="checkbox" id="ayarArapca"> <span data-i18n="arapca_goster">Arapça yazıyı da göster</span>
   </label>
   <label class="ayar-satir">
-    Konuşma hızı:
+    <input type="checkbox" id="ayarKaranlik"> <span data-i18n="karanlik">🌙 Karanlık mod</span>
+  </label>
+  <label class="ayar-satir">
+    <span data-i18n="hiz">Konuşma hızı:</span>
     <input type="range" id="ayarHiz" min="0.5" max="1.2" step="0.1" value="0.8">
   </label>
   <label class="ayar-satir">
-    Arapça ses:
+    <span data-i18n="ses">Arapça ses:</span>
     <select id="ayarSes"></select>
   </label>
+  <label class="ayar-satir" style="flex-direction:column;align-items:flex-start">
+    <span data-i18n="openai_anahtar">OpenAI API anahtarı (isteğe bağlı — çok daha doğal ses):</span>
+    <input type="password" id="ayarOaiKey" placeholder="sk-..." style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--cizgi);background:var(--kart);color:var(--metin);font-family:inherit">
+    <small class="ipucu" data-i18n="openai_ipucu">platform.openai.com'dan anahtar al, buraya yapıştır. Boşsa tarayıcı sesi kullanılır.</small>
+  </label>
   <div class="ayar-btnler">
-    <button class="btn danger" id="ayarSifirla">İlerlemeyi Sıfırla</button>
-    <button class="btn primary" id="ayarKapat">Kapat</button>
+    <button class="btn danger" id="ayarSifirla" data-i18n="sifirla">İlerlemeyi Sıfırla</button>
+    <button class="btn primary" id="ayarKapat" data-i18n="kapat">Kapat</button>
   </div>
 </dialog>
 
@@ -172,6 +192,7 @@
 <div id="konfeti"></div>
 
 <script src="data.js"></script>
+<script src="en.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
