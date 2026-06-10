@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a7a5e">
+<title>Mısırca Hocam — Egyptian Arabic Tutor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <h1>🇪🇬 Mısırca Hocam</h1>
+    <div class="header-stats">
+      <span id="streakBadge" title="Günlük seri">🔥 0</span>
+      <span id="xpBadge" title="Toplam XP">⭐ 0 XP</span>
+      <button id="settingsBtn" title="Ayarlar">⚙️</button>
+    </div>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button class="tab active" data-tab="bugun">📅 Bugün</button>
+  <button class="tab" data-tab="ders">📖 Ders</button>
+  <button class="tab" data-tab="pratik">🧠 Pratik</button>
+  <button class="tab" data-tab="konusma">🎤 Konuşma</button>
+  <button class="tab" data-tab="cevirmen">🌐 Çevirmen</button>
+  <button class="tab" data-tab="ajanda">🗓️ Ajanda</button>
+</nav>
+
+<main>
+  <!-- BUGÜN -->
+  <section id="panel-bugun" class="panel active">
+    <h2 id="selamlama"></h2>
+    <div class="card" id="gununDersiCard"></div>
+    <h3>Günlük Hedefler <small>(~15 dakika)</small></h3>
+    <ul id="hedefListesi" class="hedef-listesi"></ul>
+    <div id="gunTamamMsg" class="kutla hidden">🎉 <b>Mabruuk!</b> (Tebrikler!) Bugünün tüm hedeflerini tamamladın!</div>
+    <h3>Günün Kelimesi</h3>
+    <div class="card" id="gununKelimesi"></div>
+  </section>
+
+  <!-- DERS -->
+  <section id="panel-ders" class="panel">
+    <div class="ders-nav">
+      <select id="dersSecimi"></select>
+    </div>
+    <div id="dersIcerik"></div>
+  </section>
+
+  <!-- PRATİK (Quiz) -->
+  <section id="panel-pratik" class="panel">
+    <div id="quizBaslangic">
+      <h2>Quiz Modu</h2>
+      <p>Hangi dersten quiz çözmek istersin?</p>
+      <select id="quizDersSecimi"></select>
+      <div class="quiz-tur-secimi">
+        <button class="btn primary" id="quizBaslatAnlam">📝 Anlam Quizi</button>
+        <button class="btn primary" id="quizBaslatDinleme">👂 Dinleme Quizi</button>
+      </div>
+      <p class="ipucu">💡 Anlam quizi: okunuşu görüp Türkçe anlamı seç. Dinleme quizi: sesi dinleyip anlamı seç.</p>
+    </div>
+    <div id="quizAlani" class="hidden"></div>
+  </section>
+
+  <!-- KONUŞMA -->
+  <section id="panel-konusma" class="panel">
+    <h2>🎤 Telaffuz Pratiği</h2>
+    <p>Kelimeyi dinle, sonra mikrofon tuşuna basıp sesli söyle. Telaffuzunu kontrol edip puan vereceğim.</p>
+    <select id="konusmaDersSecimi"></select>
+    <div id="konusmaAlani"></div>
+  </section>
+
+  <!-- ÇEVİRMEN -->
+  <section id="panel-cevirmen" class="panel">
+    <h2>🌐 Çevirmen</h2>
+    <div class="cevirmen-yon">
+      <button class="btn yon active" id="yonTrAr">Türkçe → Mısırca</button>
+      <button class="btn yon" id="yonArTr">Mısırca → Türkçe</button>
+    </div>
+    <div class="cevirmen-girdi">
+      <textarea id="ceviriGirdi" rows="3" placeholder="Çevrilecek metni yaz... ya da mikrofonla söyle 🎤"></textarea>
+      <div class="cevirmen-btnler">
+        <button class="btn mic" id="ceviriMic" title="Sesli söyle">🎤 Sesle Söyle</button>
+        <button class="btn primary" id="ceviriYap">Çevir</button>
+      </div>
+    </div>
+    <div id="ceviriSonuc" class="hidden">
+      <div class="card ceviri-card">
+        <div class="ceviri-etiket">Çeviri:</div>
+        <div id="ceviriMetin" class="buyuk-metin"></div>
+        <div id="ceviriOkunus" class="okunus"></div>
+        <div id="ceviriArapca" class="arapca-yazi"></div>
+        <button class="btn ses" id="ceviriDinle">🔊 Sesli Dinle</button>
+      </div>
+    </div>
+    <p class="ipucu">💡 Çeviri internet bağlantısı gerektirir. Okunuş otomatik üretilir, yaklaşıktır.</p>
+  </section>
+
+  <!-- AJANDA -->
+  <section id="panel-ajanda" class="panel">
+    <h2>🗓️ 8 Haftalık Yol Haritası</h2>
+    <div class="genel-ilerleme">
+      <div class="bar"><div id="genelBar" class="bar-dolu"></div></div>
+      <span id="genelYuzde">%0</span>
+    </div>
+    <div id="ajandaListesi"></div>
+    <h3>🏅 Rozetler</h3>
+    <div id="rozetler" class="rozetler"></div>
+  </section>
+</main>
+
+<!-- Ayarlar -->
+<dialog id="settingsDialog">
+  <h3>⚙️ Ayarlar</h3>
+  <label class="ayar-satir">
+    <input type="checkbox" id="ayarArapca"> Arapça yazıyı da göster
+  </label>
+  <label class="ayar-satir">
+    Konuşma hızı:
+    <input type="range" id="ayarHiz" min="0.5" max="1.2" step="0.1" value="0.8">
+  </label>
+  <label class="ayar-satir">
+    Arapça ses:
+    <select id="ayarSes"></select>
+  </label>
+  <div class="ayar-btnler">
+    <button class="btn danger" id="ayarSifirla">İlerlemeyi Sıfırla</button>
+    <button class="btn primary" id="ayarKapat">Kapat</button>
+  </div>
+</dialog>
+
+<div id="toast" class="hidden"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
