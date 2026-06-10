@@ -107,8 +107,9 @@ else ok("Tüm statik element kimlikleri index.html'de mevcut");
 
 // ---- 7. index.html'deki id'lere app.js'ten erişim (ters yön: ölü id kontrolü değil, kritik olanlar) ----
 ["dersSecimi", "quizDersSecimi", "konusmaDersSecimi", "modAnlam", "modDinleme", "modEslestirme",
- "modFlashcard", "modHiz", "modSayi", "modTelaffuz", "modDiyalog", "ceviriMic", "ceviriYap",
- "ceviriDinle", "ceviriTekrarla", "paylasBtn", "dilBtn", "settingsBtn", "ayarDil", "ayarOaiKey"].forEach(id => {
+ "modFlashcard", "modHiz", "modSayi", "modTelaffuz", "modDiyalog", "modAiHoca", "aiGonder", "aiMic",
+ "ceviriMic", "ceviriYap", "ceviriDinle", "ceviriTekrarla", "paylasBtn", "dilBtn", "settingsBtn",
+ "ayarDil", "ayarOaiKey", "yedekAl", "yedekYukle"].forEach(id => {
   if (!htmlIds.has(id)) fail(`Kritik id index.html'de yok: ${id}`);
   if (!appCode.includes(`"#${id}"`)) fail(`app.js '${id}' elementini hiç kullanmıyor`);
 });
