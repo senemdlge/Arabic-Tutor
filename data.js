@@ -191,7 +191,7 @@ const CURRICULUM = [
           { ar: "غالي أوي", tr: "ğaali evi", anlam: "Çok pahalı" },
           { ar: "رخيص", tr: "rahiis", anlam: "Ucuz" },
           { ar: "فلوس", tr: "filuus", anlam: "Para" },
-          { ar: "جنيه", tr: "gineyh", anlam: "Cüneyh (Mısır lirası)" },
+          { ar: "ريال", tr: "riyaal", anlam: "Riyal" },
           { ar: "ممكن أشوف؟", tr: "mumkin eşuuf?", anlam: "Bakabilir miyim?" },
           { ar: "هاخد ده", tr: "haahod de", anlam: "Bunu alacağım" },
           { ar: "مش عايز حاجة", tr: "miş aayiz haage", anlam: "Bir şey istemiyorum" },
@@ -341,7 +341,7 @@ const CURRICULUM = [
           { ar: "عندي ميعاد", tr: "andi miaad", anlam: "Randevum var" },
           { ar: "هاتصل بيك", tr: "hattisil biik", anlam: "Seni arayacağım" },
           { ar: "إيه خططك؟", tr: "êh hutatek?", anlam: "Planların ne?" },
-          { ar: "هاسافر مصر", tr: "haseefir masr", anlam: "Mısır'a gideceğim" },
+          { ar: "هاسافر الشهر الجاي", tr: "haseefir iş-şahr ig-gey", anlam: "Gelecek ay seyahate çıkacağım" },
           { ar: "الأسبوع الجاي", tr: "il-usbuu il-gey", anlam: "Gelecek hafta" },
           { ar: "بعدين", tr: "baadeyn", anlam: "Sonra" },
           { ar: "مستني", tr: "mistenni", anlam: "Bekliyorum" }
@@ -367,15 +367,15 @@ const CURRICULUM = [
       {
         id: "w4d4",
         gun: 4,
-        baslik: "Mısır'a Özgü İfadeler",
+        baslik: "Her Yerde Geçen Kalıplar",
         items: [
-          { ar: "يا باشا", tr: "ye başa", anlam: "Paşam (hitap)" },
-          { ar: "يا حبيبي", tr: "ye habiibi", anlam: "Canım / dostum" },
-          { ar: "فل الفل", tr: "full il-full", anlam: "Mükemmel" },
+          { ar: "السلام عليكم", tr: "is-seleemu aleykum", anlam: "Selamün aleyküm" },
+          { ar: "وعليكم السلام", tr: "ve aleykum is-seleem", anlam: "Aleyküm selam (cevap)" },
+          { ar: "الله يعطيك العافية", tr: "allah yatiik il-aafye", anlam: "Kolay gelsin (çok yaygın)" },
+          { ar: "يا أخي", tr: "ye ahi", anlam: "Kardeşim (hitap)" },
+          { ar: "حاضر", tr: "haadir", anlam: "Tamam / emredersin" },
           { ar: "على راسي", tr: "ale raasi", anlam: "Başım üstüne" },
           { ar: "ربنا يسهل", tr: "rabbine yisehhil", anlam: "Allah kolaylık versin" },
-          { ar: "حاضر", tr: "haadir", anlam: "Tamam / emredersin" },
-          { ar: "اتفضل", tr: "itfaddal", anlam: "Buyur" },
           { ar: "براحتك", tr: "biraahtek", anlam: "Keyfine bak / rahatına" },
           { ar: "مية مية", tr: "miyya miyya", anlam: "Yüzde yüz / harika" },
           { ar: "صحيح", tr: "sahiih", anlam: "Doğru / bu arada" }
@@ -391,9 +391,9 @@ const CURRICULUM = [
           { ar: "عايز أروح وسط البلد", tr: "aayiz aruuh vist il-beled", anlam: "Şehir merkezine gitmek istiyorum" },
           { ar: "الجو حلو النهارده", tr: "il-gevv hilv in-neharda", anlam: "Bugün hava güzel" },
           { ar: "تحب تشرب إيه؟", tr: "tihibb tişrab êh?", anlam: "Ne içmek istersin?" },
-          { ar: "أنا ساكن في القاهرة", tr: "ene seekin fil-kahire", anlam: "Kahire'de yaşıyorum" },
+          { ar: "أنا ساكن في الرياض", tr: "ene seekin fir-riyaad", anlam: "Riyad'da yaşıyorum" },
           { ar: "ممكن سؤال؟", tr: "mumkin su'eel?", anlam: "Bir soru sorabilir miyim?" },
-          { ar: "مصر أم الدنيا", tr: "masr umm id-dunye", anlam: "Mısır dünyanın anasıdır" },
+          { ar: "إن شاء الله نتقابل تاني", tr: "inşaallah nit'aabil teeni", anlam: "İnşallah yine görüşürüz" },
           { ar: "أشوفك على خير", tr: "eşuufek ale hêr", anlam: "Görüşmek üzere" },
           { ar: "تصبح على خير", tr: "tisbah ale hêr", anlam: "İyi geceler" }
         ]
@@ -525,10 +525,10 @@ const SEVIYELER = [
   { xp: 100, ad: "Turist", ikon: "🧳" },
   { xp: 300, ad: "Sokak Bilgesi", ikon: "🕶️" },
   { xp: 600, ad: "Pazarlık Ustası", ikon: "🛍️" },
-  { xp: 1000, ad: "Kahire Esnafı", ikon: "☕" },
+  { xp: 1000, ad: "Sohbet Ehli", ikon: "☕" },
   { xp: 1500, ad: "Ofis Profesyoneli", ikon: "💼" },
-  { xp: 2200, ad: "Mısır Uzmanı", ikon: "🏺" },
-  { xp: 3000, ad: "Yarı Mısırlı", ikon: "👑" }
+  { xp: 2200, ad: "Arapça Uzmanı", ikon: "🏆" },
+  { xp: 3000, ad: "Yarı Arap", ikon: "👑" }
 ];
 
 // Sesli diyalog pratiği — uygulama karşı tarafı seslendirir, sen kendi repliğini söylersin
@@ -555,9 +555,9 @@ const DIYALOGLAR = [
       { rol: "sen", ar: "عايز أروح وسط البلد", tr: "aayiz aruuh vist il-beled", anlam: "Şehir merkezine gitmek istiyorum" },
       { rol: "app", kisi: "Şoför", ar: "ماشي، اتفضل", tr: "meeşi, itfaddal", anlam: "Tamam, buyur" },
       { rol: "sen", ar: "بكام؟", tr: "bikeem?", anlam: "Kaça?" },
-      { rol: "app", kisi: "Şoför", ar: "خمسين جنيه", tr: "hamsiin gineyh", anlam: "Elli cüneyh" },
+      { rol: "app", kisi: "Şoför", ar: "خمسين ريال", tr: "hamsiin riyaal", anlam: "Elli riyal" },
       { rol: "sen", ar: "غالي أوي! تلاتين ماشي؟", tr: "ğaali evi! teleetiin meeşi?", anlam: "Çok pahalı! Otuz olur mu?" },
-      { rol: "app", kisi: "Şoför", ar: "ماشي يا باشا", tr: "meeşi ye başa", anlam: "Tamam paşam" }
+      { rol: "app", kisi: "Şoför", ar: "ماشي يا صاحبي", tr: "meeşi ye saahbi", anlam: "Tamam dostum" }
     ]
   },
   {

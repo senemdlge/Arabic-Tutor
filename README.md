@@ -1,6 +1,7 @@
 # 🏜️ Saudi Survival App
 
-Türkler için sıfırdan **Mısır lehçesi Arapça** öğreten, mobil öncelikli interaktif uygulama.
+Türkler için sıfırdan konuşma Arapçası öğreten, mobil öncelikli interaktif uygulama.
+Lehçe olarak **Mısır lehçesi** kullanılır (Arap dünyasının her yerinde — Suudi Arabistan dahil — anlaşılan, en yaygın ve en kolay lehçe), içerik ise her Arap ülkesinde geçen günlük ifadelere odaklanır.
 Harf öğrenmeye gerek yok — her şey **Türkçe okunuşuyla** yazılır (ör. *halaas!*, *yalla!*, *izzeyyek?*).
 
 ## Özellikler
