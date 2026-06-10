@@ -1071,5 +1071,14 @@ function baslat() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
+  // iOS Safari: ses motoru ancak kullanıcı dokunuşuyla uyanır; ilk dokunuşta sessizce hazırla
+  document.addEventListener("click", function uyandir() {
+    try {
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+    setTimeout(sesleriYukle, 300);
+  }, { once: true });
 }
 baslat();

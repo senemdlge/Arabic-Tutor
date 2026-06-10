@@ -58,8 +58,25 @@ const CURRICULUM = [
         ]
       },
       {
-        id: "w1d4",
+        id: "w1d3b",
         gun: 4,
+        baslik: "🙏 'Rica Ederim' Demenin 8 Yolu",
+        items: [
+          { ar: "العفو", tr: "il-afv", anlam: "Rica ederim (en yaygın)" },
+          { ar: "عفواً", tr: "afvan", anlam: "Rica ederim / pardon" },
+          { ar: "على الرحب والسعة", tr: "ala'r-rahb vis-sea", anlam: "Rica ederim, baş üstüne (çok kibar)" },
+          { ar: "أي خدمة", tr: "ayyi hidme", anlam: "Rica ederim / her zaman hizmetindeyim" },
+          { ar: "ولا يهمك", tr: "vele yhimmek", anlam: "Rica ederim / takma kafana" },
+          { ar: "ده واجبي", tr: "de vegbi", anlam: "Rica ederim, bu benim görevim" },
+          { ar: "اتفضل", tr: "itfaddal", anlam: "Buyur (erkeğe denir)" },
+          { ar: "اتفضلي", tr: "itfaddali", anlam: "Buyur (kadına denir)" },
+          { ar: "تسلم", tr: "tislem", anlam: "Sağ ol / eline sağlık (erkeğe denir)" },
+          { ar: "ربنا يكرمك", tr: "rabbine yikramek", anlam: "Allah senden razı olsun (teşekküre cevap)" }
+        ]
+      },
+      {
+        id: "w1d4",
+        gun: 5,
         baslik: "Kendini Tanıtma",
         items: [
           { ar: "أنا", tr: "ene", anlam: "Ben" },
@@ -76,7 +93,7 @@ const CURRICULUM = [
       },
       {
         id: "w1d4b",
-        gun: 5,
+        gun: 6,
         baslik: "Evet, Hayır ve Tepkiler",
         items: [
           { ar: "أيوة", tr: "eyve", anlam: "Evet" },
@@ -93,7 +110,7 @@ const CURRICULUM = [
       },
       {
         id: "w1d5",
-        gun: 6,
+        gun: 7,
         baslik: "Sayılar 1-10",
         items: [
           { ar: "واحد", tr: "vaahid", anlam: "Bir (1)" },
