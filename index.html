@@ -2,42 +2,42 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1a7a5e">
-<title>Mısırca Hocam — Egyptian Arabic Tutor</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Saudi Survival">
+<title>Saudi Survival App</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <h1>🇪🇬 Mısırca Hocam</h1>
+    <h1>🏜️ Saudi Survival</h1>
     <div class="header-stats">
+      <span id="seviyeBadge" title="Seviyen">🐣</span>
       <span id="streakBadge" title="Günlük seri">🔥 0</span>
-      <span id="xpBadge" title="Toplam XP">⭐ 0 XP</span>
+      <span id="xpBadge" title="Toplam XP">⭐ 0</span>
       <button id="settingsBtn" title="Ayarlar">⚙️</button>
     </div>
   </div>
 </header>
 
-<nav id="tabs">
-  <button class="tab active" data-tab="bugun">📅 Bugün</button>
-  <button class="tab" data-tab="ders">📖 Ders</button>
-  <button class="tab" data-tab="pratik">🧠 Pratik</button>
-  <button class="tab" data-tab="konusma">🎤 Konuşma</button>
-  <button class="tab" data-tab="cevirmen">🌐 Çevirmen</button>
-  <button class="tab" data-tab="ajanda">🗓️ Ajanda</button>
-</nav>
-
 <main>
   <!-- BUGÜN -->
   <section id="panel-bugun" class="panel active">
     <h2 id="selamlama"></h2>
+    <div class="card seviye-karti" id="seviyeKarti"></div>
     <div class="card" id="gununDersiCard"></div>
     <h3>Günlük Hedefler <small>(~15 dakika)</small></h3>
     <ul id="hedefListesi" class="hedef-listesi"></ul>
     <div id="gunTamamMsg" class="kutla hidden">🎉 <b>Mabruuk!</b> (Tebrikler!) Bugünün tüm hedeflerini tamamladın!</div>
     <h3>Günün Kelimesi</h3>
     <div class="card" id="gununKelimesi"></div>
+    <h3>Tekrar Zamanı 🃏</h3>
+    <div class="card" id="srsOzet"></div>
   </section>
 
   <!-- DERS -->
@@ -48,58 +48,81 @@
     <div id="dersIcerik"></div>
   </section>
 
-  <!-- PRATİK (Quiz) -->
+  <!-- PRATİK -->
   <section id="panel-pratik" class="panel">
-    <div id="quizBaslangic">
-      <h2>Quiz Modu</h2>
-      <p>Hangi dersten quiz çözmek istersin?</p>
+    <div id="pratikMenu">
+      <h2>🧠 Pratik</h2>
       <select id="quizDersSecimi"></select>
-      <div class="quiz-tur-secimi">
-        <button class="btn primary" id="quizBaslatAnlam">📝 Anlam Quizi</button>
-        <button class="btn primary" id="quizBaslatDinleme">👂 Dinleme Quizi</button>
+      <div class="mod-izgara">
+        <button class="mod-kart" id="modAnlam"><span class="mod-ikon">📝</span><b>Anlam Quizi</b><small>Okunuşu gör, anlamı seç</small></button>
+        <button class="mod-kart" id="modDinleme"><span class="mod-ikon">👂</span><b>Dinleme Quizi</b><small>Sesi dinle, anlamı seç</small></button>
+        <button class="mod-kart" id="modEslestirme"><span class="mod-ikon">🧩</span><b>Eşleştirme</b><small>Okunuş ↔ anlam eşleştir</small></button>
+        <button class="mod-kart" id="modFlashcard"><span class="mod-ikon">🃏</span><b>Flashcard Tekrarı</b><small>Akıllı tekrar (zorlandıkların)</small></button>
       </div>
-      <p class="ipucu">💡 Anlam quizi: okunuşu görüp Türkçe anlamı seç. Dinleme quizi: sesi dinleyip anlamı seç.</p>
     </div>
     <div id="quizAlani" class="hidden"></div>
+    <div id="eslestirmeAlani" class="hidden"></div>
+    <div id="flashcardAlani" class="hidden"></div>
   </section>
 
   <!-- KONUŞMA -->
   <section id="panel-konusma" class="panel">
-    <h2>🎤 Telaffuz Pratiği</h2>
-    <p>Kelimeyi dinle, sonra mikrofon tuşuna basıp sesli söyle. Telaffuzunu kontrol edip puan vereceğim.</p>
-    <select id="konusmaDersSecimi"></select>
-    <div id="konusmaAlani"></div>
+    <div id="konusmaMenu">
+      <h2>🎤 Konuşma</h2>
+      <div class="mod-izgara">
+        <button class="mod-kart" id="modTelaffuz"><span class="mod-ikon">🗣️</span><b>Telaffuz Pratiği</b><small>Kelimeyi söyle, puan al</small></button>
+        <button class="mod-kart" id="modDiyalog"><span class="mod-ikon">💬</span><b>Sesli Diyalog</b><small>Uygulamayla konuş!</small></button>
+      </div>
+    </div>
+    <div id="telaffuzAlani" class="hidden">
+      <button class="btn geri" data-geri="konusma">← Geri</button>
+      <select id="konusmaDersSecimi"></select>
+      <div id="konusmaAlani"></div>
+    </div>
+    <div id="diyalogAlani" class="hidden"></div>
   </section>
 
   <!-- ÇEVİRMEN -->
   <section id="panel-cevirmen" class="panel">
     <h2>🌐 Çevirmen</h2>
+    <p class="ipucu">Cümleni yaz ya da söyle — çevirir, okunuşunu yazar, sesli okur.</p>
     <div class="cevirmen-yon">
-      <button class="btn yon active" id="yonTrAr">Türkçe → Mısırca</button>
-      <button class="btn yon" id="yonArTr">Mısırca → Türkçe</button>
+      <button class="btn yon active" id="yonTrAr">Türkçe → Arapça</button>
+      <button class="btn yon" id="yonArTr">Arapça → Türkçe</button>
     </div>
     <div class="cevirmen-girdi">
       <textarea id="ceviriGirdi" rows="3" placeholder="Çevrilecek metni yaz... ya da mikrofonla söyle 🎤"></textarea>
       <div class="cevirmen-btnler">
-        <button class="btn mic" id="ceviriMic" title="Sesli söyle">🎤 Sesle Söyle</button>
+        <button class="btn mic" id="ceviriMic">🎤 Söyle</button>
         <button class="btn primary" id="ceviriYap">Çevir</button>
       </div>
+      <div id="ceviriDurum" class="dinleme-durum hidden"></div>
     </div>
     <div id="ceviriSonuc" class="hidden">
       <div class="card ceviri-card">
         <div class="ceviri-etiket">Çeviri:</div>
         <div id="ceviriMetin" class="buyuk-metin"></div>
-        <div id="ceviriOkunus" class="okunus"></div>
+        <div id="ceviriOkunus" class="okunus-not"></div>
         <div id="ceviriArapca" class="arapca-yazi"></div>
-        <button class="btn ses" id="ceviriDinle">🔊 Sesli Dinle</button>
+        <div class="kelime-btnler" style="margin-top:8px">
+          <button class="btn ses" id="ceviriDinle">🔊 Dinle</button>
+          <button class="btn mic" id="ceviriTekrarla">🎤 Sen Söyle</button>
+        </div>
+        <div id="ceviriTelaffuz"></div>
       </div>
     </div>
-    <p class="ipucu">💡 Çeviri internet bağlantısı gerektirir. Okunuş otomatik üretilir, yaklaşıktır.</p>
+  </section>
+
+  <!-- CEP REHBERİ -->
+  <section id="panel-rehber" class="panel">
+    <h2>🆘 Cep Rehberi</h2>
+    <p class="ipucu">Gerçek hayatta sıkışınca: ifadeye dokun, telefon senin yerine Arapça söylesin! 📢</p>
+    <div id="rehberKategoriler"></div>
   </section>
 
   <!-- AJANDA -->
   <section id="panel-ajanda" class="panel">
-    <h2>🗓️ 8 Haftalık Yol Haritası</h2>
+    <h2>🗓️ Yol Haritası</h2>
     <div class="genel-ilerleme">
       <div class="bar"><div id="genelBar" class="bar-dolu"></div></div>
       <span id="genelYuzde">%0</span>
@@ -107,14 +130,29 @@
     <div id="ajandaListesi"></div>
     <h3>🏅 Rozetler</h3>
     <div id="rozetler" class="rozetler"></div>
+    <h3>📊 İstatistikler</h3>
+    <div class="card" id="istatistikler"></div>
   </section>
 </main>
+
+<nav id="tabs">
+  <button class="tab active" data-tab="bugun"><span>📅</span>Bugün</button>
+  <button class="tab" data-tab="ders"><span>📖</span>Ders</button>
+  <button class="tab" data-tab="pratik"><span>🧠</span>Pratik</button>
+  <button class="tab" data-tab="konusma"><span>🎤</span>Konuş</button>
+  <button class="tab" data-tab="cevirmen"><span>🌐</span>Çeviri</button>
+  <button class="tab" data-tab="rehber"><span>🆘</span>Rehber</button>
+  <button class="tab" data-tab="ajanda"><span>🗓️</span>Plan</button>
+</nav>
 
 <!-- Ayarlar -->
 <dialog id="settingsDialog">
   <h3>⚙️ Ayarlar</h3>
   <label class="ayar-satir">
     <input type="checkbox" id="ayarArapca"> Arapça yazıyı da göster
+  </label>
+  <label class="ayar-satir">
+    <input type="checkbox" id="ayarKaranlik"> 🌙 Karanlık mod
   </label>
   <label class="ayar-satir">
     Konuşma hızı:
@@ -131,6 +169,7 @@
 </dialog>
 
 <div id="toast" class="hidden"></div>
+<div id="konfeti"></div>
 
 <script src="data.js"></script>
 <script src="app.js"></script>
