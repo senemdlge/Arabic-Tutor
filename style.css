@@ -495,6 +495,16 @@ dialog::backdrop { background: rgba(10, 20, 16, .5); backdrop-filter: blur(4px);
 }
 @keyframes toastGir { from { opacity: 0; transform: translate(-50%, 12px);} to { opacity: 1; transform: translate(-50%, 0);} }
 
+/* ---------- Aktivite takvimi & hız turu ---------- */
+.takvim { display: grid; grid-template-columns: repeat(14, 1fr); gap: 5px; }
+.takvim-gun { aspect-ratio: 1; border-radius: 5px; background: var(--cizgi); }
+.takvim-gun.s1 { background: #9bd7c2; }
+.takvim-gun.s2 { background: #3eb389; }
+.takvim-gun.s3 { background: var(--yesil); box-shadow: 0 0 6px rgba(20,176,138,.5); }
+
+.sure-bar { height: 10px; background: var(--cizgi); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+.sure-bar > div { height: 100%; background: linear-gradient(90deg, var(--kirmizi), var(--altin-2)); transition: width 1s linear; border-radius: 6px; }
+
 #konfeti { position: fixed; inset: 0; pointer-events: none; z-index: 99; overflow: hidden; }
 .konfeti-parca { position: absolute; top: -30px; font-size: 1.5rem; animation: dus 2.6s ease-in forwards; }
 @keyframes dus { to { transform: translateY(110vh) rotate(540deg); opacity: .2; } }

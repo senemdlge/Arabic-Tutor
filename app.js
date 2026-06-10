@@ -1,4 +1,4 @@
-/* Saudi Survival App — Egyptian Arabic Tutor */
+/* Saudi Survival App — Egyptian Arabic Tutor (TR/EN) */
 "use strict";
 
 // ===================== DURUM (STATE) =====================
@@ -14,8 +14,12 @@ const VARSAYILAN = {
   bitenDiyaloglar: {},
   arapcaGoster: false,
   karanlik: false,
+  dil: "tr",
   hiz: 0.8,
-  sesURI: null
+  sesURI: null,
+  oaiKey: "",
+  iosBanner: true,
+  aktivite: {}          // tarih -> o gün kazanılan XP
 };
 
 let S = yukle();
@@ -35,6 +39,38 @@ function kaydet() { localStorage.setItem("misirca", JSON.stringify(S)); }
 function bugunStr() { return new Date().toISOString().slice(0, 10); }
 function gunNo() { return Math.floor(Date.now() / 86400000); }
 
+// ===================== ÇOK DİLLİLİK =====================
+function t(key) {
+  return (UI_METIN[S.dil] && UI_METIN[S.dil][key]) || UI_METIN.tr[key] || key;
+}
+function tf(key, degerler) {
+  let s = t(key);
+  for (const k in degerler) s = s.split("{" + k + "}").join(degerler[k]);
+  return s;
+}
+// İçerik çevirisi: Türkçe metin -> seçili dile
+function cAl(s) {
+  if (S.dil === "en") return EN_SOZLUK[s] || s;
+  return s;
+}
+// Türkçe fonetik -> İngilizce fonetik (ş->sh, v->w...)
+const EN_FONETIK = { "ş": "sh", "Ş": "Sh", "ç": "ch", "Ç": "Ch", "ğ": "gh", "Ğ": "Gh", "ı": "i", "I": "I", "İ": "I", "ö": "o", "Ö": "O", "ü": "u", "Ü": "U", "ê": "ei", "v": "w", "V": "W" };
+function okunusGoster(tr) {
+  if (S.dil !== "en") return tr;
+  let out = "";
+  for (const ch of tr) out += EN_FONETIK[ch] !== undefined ? EN_FONETIK[ch] : ch;
+  return out;
+}
+
+function applyI18n() {
+  document.documentElement.lang = S.dil;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  $("#dilBtn").textContent = S.dil === "tr" ? "EN" : "TR";
+  yonGuncelle();
+}
+
+// ===================== GÜNLÜK HEDEF / XP =====================
 function gunlukHedefHazirla() {
   if (S.gunlukHedef.tarih !== bugunStr()) {
     const dun = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
@@ -44,16 +80,18 @@ function gunlukHedefHazirla() {
   }
 }
 
-function xpEkle(miktar, sebep) {
+function xpEkle(miktar, sebepKey) {
   const onceki = seviyeBul(S.xp);
   S.xp += miktar;
+  if (!S.aktivite) S.aktivite = {};
+  S.aktivite[bugunStr()] = (S.aktivite[bugunStr()] || 0) + miktar;
   kaydet();
   ustBilgiGuncelle();
-  toast(`+${miktar} XP — ${sebep} ⭐`);
+  toast(`+${miktar} XP — ${t(sebepKey)} ⭐`);
   const sonra = seviyeBul(S.xp);
   if (sonra.ad !== onceki.ad) {
     konfetiAt();
-    toast(`${sonra.ikon} SEVİYE ATLADIN: ${sonra.ad}!`, 3500);
+    toast(`${sonra.ikon} ${t("seviye_atla")}: ${cAl(sonra.ad)}!`, 3500);
   }
   rozetKontrol();
 }
@@ -61,20 +99,20 @@ function xpEkle(miktar, sebep) {
 function hedefTamamla(id) {
   gunlukHedefHazirla();
   const h = S.gunlukHedef;
-  if (id === "ders" && !h.ders) { h.ders = true; xpEkle(30, "Günün dersi bitti"); }
-  if (id === "quiz" && !h.quiz) { h.quiz = true; xpEkle(20, "Quiz tamamlandı"); }
+  if (id === "ders" && !h.ders) { h.ders = true; xpEkle(30, "xp_ders"); }
+  if (id === "quiz" && !h.quiz) { h.quiz = true; xpEkle(20, "xp_quiz"); }
   if (id === "konusma") {
     h.konusma++;
-    if (h.konusma === 3) xpEkle(30, "Konuşma hedefi tamam");
+    if (h.konusma === 3) xpEkle(30, "xp_konusma");
   }
   if (id === "dinleme") {
     h.dinleme++;
-    if (h.dinleme === 10) xpEkle(10, "Dinleme hedefi tamam");
+    if (h.dinleme === 10) xpEkle(10, "xp_dinleme");
   }
   if (!h.tamamlandi && h.ders && h.quiz && h.konusma >= 3 && h.dinleme >= 10) {
     h.tamamlandi = true;
     if (S.sonGun !== bugunStr()) { S.seri++; S.sonGun = bugunStr(); }
-    xpEkle(25, "Günlük hedefler tamamlandı! 🔥");
+    xpEkle(25, "xp_gun");
     konfetiAt();
   }
   kaydet();
@@ -87,11 +125,11 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 function toast(msg, sure = 2200) {
-  const t = $("#toast");
-  t.textContent = msg;
-  t.classList.remove("hidden");
-  clearTimeout(t._z);
-  t._z = setTimeout(() => t.classList.add("hidden"), sure);
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  clearTimeout(el._z);
+  el._z = setTimeout(() => el.classList.add("hidden"), sure);
 }
 
 function titret(desen) { if (navigator.vibrate) navigator.vibrate(desen); }
@@ -115,7 +153,7 @@ function tumDersler() {
   const liste = [];
   for (const hafta of CURRICULUM) {
     if (hafta.tekrar) continue;
-    for (const d of hafta.dersler) liste.push({ ...d, hafta: hafta.hafta, haftaBaslik: hafta.baslik });
+    for (const d of hafta.dersler) liste.push({ ...d, hafta: hafta.hafta });
   }
   return liste;
 }
@@ -140,12 +178,16 @@ function sonrakiSeviye(xp) {
 
 // ===================== SES (TTS) =====================
 let sesler = [];
+const sesOnbellek = new Map(); // OpenAI ses önbelleği: metin -> ObjectURL
+let aktifAudio = null;
+
 function sesleriYukle() {
   sesler = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().startsWith("ar"));
   const sel = $("#ayarSes");
+  if (!sel) return;
   sel.innerHTML = "";
   if (!sesler.length) {
-    sel.innerHTML = "<option>Arapça ses bulunamadı — cihaz diline Arapça TTS ekleyin</option>";
+    sel.innerHTML = `<option>${t("ses_bulunamadi")}</option>`;
     return;
   }
   for (const v of sesler) {
@@ -158,31 +200,128 @@ function sesleriYukle() {
 }
 speechSynthesis.onvoiceschanged = sesleriYukle;
 
-function seslendir(arapca) {
+// En kaliteli tarayıcı sesini seç: ar-EG > Google/doğal sesler > herhangi bir Arapça
+function enIyiSes() {
+  if (S.sesURI) {
+    const secili = sesler.find(v => v.voiceURI === S.sesURI);
+    if (secili) return secili;
+  }
+  const kalite = ["majed", "google", "natural", "neural", "premium", "enhanced"];
+  const puan = (v) => {
+    let p = 0;
+    if (v.lang === "ar-EG") p += 10;
+    const ad = v.name.toLowerCase();
+    kalite.forEach((k, i) => { if (ad.includes(k)) p += 5 - i * 0.5; });
+    if (!v.localService) p += 1; // bulut sesleri genelde daha doğal
+    return p;
+  };
+  return sesler.slice().sort((a, b) => puan(b) - puan(a))[0];
+}
+
+function tarayiciSeslendir(arapca) {
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(arapca);
   u.lang = "ar-EG";
   u.rate = S.hiz;
-  const secili = sesler.find(v => v.voiceURI === S.sesURI) ||
-                 sesler.find(v => v.lang === "ar-EG") || sesler[0];
-  if (secili) u.voice = secili;
+  const v = enIyiSes();
+  if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
 
-function turkceSeslendir(metin) {
+// Sesi tamamen durdur (sekme değişimi, çalma listesi iptali)
+let calmaAktif = false;
+function sesiDurdur() {
+  calmaAktif = false;
+  speechSynthesis.cancel();
+  if (aktifAudio) { aktifAudio.pause(); aktifAudio = null; }
+}
+
+async function seslendir(arapca) {
+  if (aktifAudio) { aktifAudio.pause(); aktifAudio = null; }
+  if (S.oaiKey) {
+    try {
+      let url = sesOnbellek.get(arapca);
+      if (!url) {
+        const res = await fetch("https://api.openai.com/v1/audio/speech", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "gpt-4o-mini-tts",
+            voice: "alloy",
+            input: arapca,
+            instructions: "Speak in clear Egyptian Arabic dialect, at a slightly slow pace suitable for a language learner.",
+            response_format: "mp3"
+          })
+        });
+        if (!res.ok) throw new Error("OpenAI TTS " + res.status);
+        const blob = await res.blob();
+        url = URL.createObjectURL(blob);
+        sesOnbellek.set(arapca, url);
+      }
+      aktifAudio = new Audio(url);
+      aktifAudio.playbackRate = Math.min(1, S.hiz + 0.2);
+      await aktifAudio.play();
+      return;
+    } catch (e) {
+      toast(t("oai_hata"), 3000);
+    }
+  }
+  tarayiciSeslendir(arapca);
+}
+
+// Sırayla okuma için: bitince çözülen Promise döner
+function seslendirAsync(arapca) {
+  return new Promise(async (resolve) => {
+    if (S.oaiKey) {
+      try {
+        let url = sesOnbellek.get(arapca);
+        if (!url) {
+          const res = await fetch("https://api.openai.com/v1/audio/speech", {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "gpt-4o-mini-tts", voice: "alloy", input: arapca,
+              instructions: "Speak in clear Egyptian Arabic dialect, at a slightly slow pace suitable for a language learner.",
+              response_format: "mp3"
+            })
+          });
+          if (!res.ok) throw new Error("tts");
+          url = URL.createObjectURL(await res.blob());
+          sesOnbellek.set(arapca, url);
+        }
+        aktifAudio = new Audio(url);
+        aktifAudio.onended = resolve;
+        aktifAudio.onerror = resolve;
+        await aktifAudio.play();
+        return;
+      } catch (e) { /* tarayıcıya düş */ }
+    }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(arapca);
+    u.lang = "ar-EG";
+    u.rate = S.hiz;
+    const v = enIyiSes();
+    if (v) u.voice = v;
+    u.onend = resolve;
+    u.onerror = resolve;
+    speechSynthesis.speak(u);
+    setTimeout(resolve, 9000); // güvenlik: takılırsa devam et
+  });
+}
+
+function anadilSeslendir(metin) {
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(metin);
-  u.lang = "tr-TR";
+  u.lang = S.dil === "en" ? "en-US" : "tr-TR";
   speechSynthesis.speak(u);
 }
 
 // ===================== KONUŞMA TANIMA (STT) =====================
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// Tek aktif tanıma; durum mesajları hedef elemana yazılır
 function dinle({ dil, durumEl, sonuc, bitti }) {
   if (!SpeechRec) {
-    if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">⚠️ Bu tarayıcı sesli tanımayı desteklemiyor.<br>📱 Android'de <b>Chrome</b>, iPhone'da <b>Safari</b> kullan. iPhone'da Ayarlar → Siri'den dikte açık olmalı.</div>`;
+    if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${t("err_destek")}</div>`;
     if (bitti) bitti();
     return;
   }
@@ -192,7 +331,7 @@ function dinle({ dil, durumEl, sonuc, bitti }) {
   r.interimResults = false;
   r.maxAlternatives = 5;
 
-  if (durumEl) durumEl.innerHTML = `<div class="dinleme-durum">👂 Dinliyorum... şimdi konuş!</div>`;
+  if (durumEl) durumEl.innerHTML = `<div class="dinleme-durum">${t("dinliyorum")}</div>`;
 
   const guvenlik = setTimeout(() => { try { r.stop(); } catch (e) {} }, 8000);
 
@@ -206,22 +345,21 @@ function dinle({ dil, durumEl, sonuc, bitti }) {
   r.onerror = (e) => {
     sonucGeldi = true;
     clearTimeout(guvenlik);
-    let msg = "Tanıma hatası: " + e.error;
-    if (e.error === "not-allowed" || e.error === "service-not-allowed")
-      msg = "🎙️ Mikrofon izni gerekli. Tarayıcı adres çubuğundaki kilit simgesinden mikrofona izin ver.";
-    if (e.error === "no-speech") msg = "🤫 Ses duyamadım. Mikrofona biraz daha yakın ve yüksek sesle konuş.";
-    if (e.error === "network") msg = "📡 Ağ hatası — ses tanıma için internet gerekiyor.";
-    if (e.error === "language-not-supported") msg = "Bu cihaz Arapça tanımayı desteklemiyor. Google uygulamasından Arapça dil paketi ekleyebilirsin.";
+    let msg = t("err_hata") + " " + e.error;
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") msg = t("err_izin");
+    if (e.error === "no-speech") msg = t("err_ses_yok");
+    if (e.error === "network") msg = t("err_ag");
+    if (e.error === "language-not-supported") msg = t("err_dil");
     if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${msg}</div>`;
   };
   r.onend = () => {
     clearTimeout(guvenlik);
     if (!sonucGeldi && durumEl && durumEl.querySelector(".dinleme-durum"))
-      durumEl.innerHTML = `<div class="telaffuz-sonuc orta">🤔 Bir şey duyamadım. Mikrofon tuşuna bas, "dinliyorum" yazısını görünce konuş.</div>`;
+      durumEl.innerHTML = `<div class="telaffuz-sonuc orta">${t("err_duyamadim")}</div>`;
     if (bitti) bitti();
   };
   try { r.start(); } catch (e) {
-    if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">Mikrofon başlatılamadı, sayfayı yenileyip tekrar dene.</div>`;
+    if (durumEl) durumEl.innerHTML = `<div class="telaffuz-sonuc kotu">${t("err_baslat")}</div>`;
     if (bitti) bitti();
   }
 }
@@ -263,7 +401,7 @@ function benzerlik(hedefAr, soylenenler) {
   return Math.round(enIyi * 100);
 }
 
-// ===================== ARAPÇA → TÜRKÇE OKUNUŞ =====================
+// ===================== ARAPÇA → OKUNUŞ =====================
 const HARF_MAP = {
   "ا": "a", "أ": "e", "إ": "i", "آ": "ee", "ب": "b", "ت": "t", "ث": "s",
   "ج": "g", "ح": "h", "خ": "h", "د": "d", "ذ": "z", "ر": "r", "ز": "z",
@@ -280,7 +418,7 @@ function arapcaOkunus(metin) {
     else if (HAREKE_MAP[ch] !== undefined) out += HAREKE_MAP[ch];
     else if (/[a-zA-Z0-9\s.,!?؟]/.test(ch)) out += ch === "؟" ? "?" : ch;
   }
-  return out.replace(/\s+/g, " ").trim();
+  return okunusGoster(out.replace(/\s+/g, " ").trim());
 }
 
 // ===================== SRS (Akıllı Tekrar) =====================
@@ -308,7 +446,7 @@ $$(".tab").forEach(btn => {
     $$(".panel").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     $("#panel-" + btn.dataset.tab).classList.add("active");
-    speechSynthesis.cancel();
+    sesiDurdur();
     if (btn.dataset.tab === "ajanda") ajandayiCiz();
     if (btn.dataset.tab === "bugun") bugunuCiz();
     window.scrollTo(0, 0);
@@ -323,30 +461,40 @@ function gununDersi() {
   return dersler.find(d => !S.bitenDersler[d.id]) || dersler[dersler.length - 1];
 }
 
+function iosMu() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+function standaloneMu() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
 function bugunuCiz() {
   gunlukHedefHazirla();
   const saat = new Date().getHours();
-  const selam = saat < 12 ? "Sabaah il-hêr! ☀️ (Günaydın!)" :
-                saat < 18 ? "Ehlen! 👋 (Merhaba!)" : "Mesee' il-hêr! 🌙 (İyi akşamlar!)";
-  $("#selamlama").textContent = selam;
+  $("#selamlama").textContent = saat < 12 ? t("selam_sabah") : saat < 18 ? t("selam_gun") : t("selam_aksam");
 
   // Seviye kartı
   const sv = seviyeBul(S.xp), sonraki = sonrakiSeviye(S.xp);
   const yuzde = sonraki ? Math.round(((S.xp - sv.xp) / (sonraki.xp - sv.xp)) * 100) : 100;
+  const kalanYazi = sonraki
+    ? (S.dil === "en"
+        ? `${tf("kalan_xp", { n: sonraki.xp - S.xp })} ${cAl(sonraki.ad)}`
+        : `${cAl(sonraki.ad)} ${tf("kalan_xp", { n: sonraki.xp - S.xp })}`)
+    : t("ust_seviye");
   $("#seviyeKarti").innerHTML = `
     <div class="buyuk-ikon">${sv.ikon}</div>
     <div style="flex:1">
-      <b>${sv.ad}</b>
+      <b>${cAl(sv.ad)}</b>
       <div class="seviye-bar"><div style="width:${yuzde}%"></div></div>
-      <small class="ipucu">${sonraki ? `${sonraki.ad} seviyesine ${sonraki.xp - S.xp} XP kaldı` : "En üst seviyedesin! 👑"}</small>
+      <small class="ipucu">${kalanYazi}</small>
     </div>`;
 
   const ders = gununDersi();
   const bitti = S.bitenDersler[ders.id];
   $("#gununDersiCard").innerHTML = `
-    <div class="ceviri-etiket">Günün Dersi — Hafta ${ders.hafta}</div>
-    <div class="okunus" style="font-size:1.1rem">${ders.baslik} ${bitti ? "✅" : ""}</div>
-    <button class="btn primary" id="derseGitBtn" style="margin-top:8px">${bitti ? "Tekrar Et" : "Derse Başla"} →</button>`;
+    <div class="ceviri-etiket">${t("gunun_dersi")} ${ders.hafta}</div>
+    <div class="okunus" style="font-size:1.1rem">${cAl(ders.baslik)} ${bitti ? "✅" : ""}</div>
+    <button class="btn primary" id="derseGitBtn" style="margin-top:8px">${bitti ? t("tekrar_et") : t("derse_basla")} →</button>`;
   $("#derseGitBtn").onclick = () => { dersAc(ders.id); sekmeyeGit("ders"); };
 
   const h = S.gunlukHedef;
@@ -354,7 +502,7 @@ function bugunuCiz() {
   const ilerlemeYazi = { konusma: `${Math.min(h.konusma, 3)}/3`, dinleme: `${Math.min(h.dinleme, 10)}/10` };
   $("#hedefListesi").innerHTML = GUNLUK_HEDEFLER.map(g => `
     <li class="${durumlar[g.id] ? "tamam" : ""}">
-      <span>${durumlar[g.id] ? "✅" : "⬜"} ${g.baslik} ${ilerlemeYazi[g.id] ? `<small>(${ilerlemeYazi[g.id]})</small>` : ""}</span>
+      <span>${durumlar[g.id] ? "✅" : "⬜"} ${cAl(g.baslik)} ${ilerlemeYazi[g.id] ? `<small>(${ilerlemeYazi[g.id]})</small>` : ""}</span>
       <span class="xp">+${g.xp} XP</span>
     </li>`).join("");
 
@@ -368,21 +516,41 @@ function bugunuCiz() {
   // SRS özeti
   const bekleyen = srsBekleyenler().length;
   $("#srsOzet").innerHTML = bekleyen
-    ? `<b>${bekleyen} kelime</b> tekrar bekliyor — zorlandığın kelimeleri unutma!<br>
-       <button class="btn primary" id="srsGit" style="margin-top:8px">🃏 Tekrara Başla</button>`
-    : `✨ Bekleyen tekrar yok. Quiz çözdükçe zorlandığın kelimeler buraya düşer.`;
+    ? `${tf("srs_bekleyen", { n: bekleyen })}<br>
+       <button class="btn primary" id="srsGit" style="margin-top:8px">${t("srs_basla")}</button>`
+    : t("srs_yok");
   if (bekleyen) $("#srsGit").onclick = () => { sekmeyeGit("pratik"); flashcardBaslat(); };
+
+  // iPhone'a kurulum ipucu
+  const eskiBanner = $("#iosBanner");
+  if (eskiBanner) eskiBanner.remove();
+  if (S.iosBanner && iosMu() && !standaloneMu()) {
+    const div = document.createElement("div");
+    div.className = "kutla";
+    div.id = "iosBanner";
+    div.innerHTML = (S.dil === "en"
+      ? `📲 <b>Install as an app:</b> in Safari tap the <b>Share</b> button (square with ↑), then <b>"Add to Home Screen"</b>. It opens full-screen with its own icon!`
+      : `📲 <b>Uygulama olarak kur:</b> Safari'de alttaki <b>Paylaş</b> tuşuna (↑ işaretli kare) bas, sonra <b>"Ana Ekrana Ekle"</b>'yi seç. Kendi ikonuyla tam ekran açılır!`)
+      + ` <button class="btn" id="iosBannerKapat" style="margin-top:8px">✕</button>`;
+    $("#selamlama").after(div);
+    $("#iosBannerKapat").onclick = () => { S.iosBanner = false; kaydet(); div.remove(); };
+  }
 }
 
 // ===================== DERS PANELİ =====================
 function dersSecicileriDoldur() {
   const dersler = tumDersler();
-  const html = dersler.map(d =>
-    `<option value="${d.id}">H${d.hafta} — ${d.baslik} ${S.bitenDersler[d.id] ? "✅" : ""}</option>`
-  ).join("");
+  const secenek = (d) => `<option value="${d.id}">${t("hafta").charAt(0)}${d.hafta} — ${cAl(d.baslik)} ${S.bitenDersler[d.id] ? "✅" : ""}</option>`;
+  const html = dersler.map(secenek).join("");
+  const dersSecili = $("#dersSecimi").value;
+  const quizSecili = $("#quizDersSecimi").value;
+  const konusmaSecili = $("#konusmaDersSecimi").value;
   $("#dersSecimi").innerHTML = html;
-  $("#quizDersSecimi").innerHTML = `<option value="__hepsi__">🌟 Tüm Dersler (karışık)</option>` + html;
+  $("#quizDersSecimi").innerHTML = `<option value="__hepsi__">${t("tum_dersler")}</option>` + html;
   $("#konusmaDersSecimi").innerHTML = html;
+  if (dersSecili) $("#dersSecimi").value = dersSecili;
+  if (quizSecili) $("#quizDersSecimi").value = quizSecili;
+  if (konusmaSecili) $("#konusmaDersSecimi").value = konusmaSecili;
 }
 
 function kelimeKartiHTML(item, key) {
@@ -390,8 +558,8 @@ function kelimeKartiHTML(item, key) {
     <div class="kelime-kart">
       <div class="kelime-ust">
         <div style="min-width:0">
-          <div class="okunus">${item.tr}</div>
-          <div class="anlam">${item.anlam}</div>
+          <div class="okunus">${okunusGoster(item.tr)}</div>
+          <div class="anlam">${cAl(item.anlam)}</div>
           <div class="arapca-yazi">${item.ar}</div>
         </div>
         <div class="kelime-btnler">
@@ -431,11 +599,10 @@ function kelimeKartiBagla(kapsayici, item, key) {
 }
 
 function telaffuzSonucuGoster(alan, skor, item, duyulan) {
-  let sinif, mesaj;
-  if (skor >= 75) { sinif = "iyi"; mesaj = `🎉 Harika! <b>%${skor}</b> doğruluk — "${item.tr}" telaffuzun çok iyi!`; }
-  else if (skor >= 50) { sinif = "orta"; mesaj = `👍 Fena değil: <b>%${skor}</b>. 🔊 ile bir kez daha dinle ve tekrar dene: "<b>${item.tr}</b>"`; }
-  else { sinif = "kotu"; mesaj = `🔄 <b>%${skor}</b> — olmadı ama sorun değil! 🔊 ile dinle, sonra tekrar söyle: "<b>${item.tr}</b>"`; }
-  const okunan = duyulan ? `<div class="duyulan">Duyduğum: "${arapcaOkunus(duyulan) || duyulan}"</div>` : "";
+  const key = skor >= 75 ? "tel_iyi" : skor >= 50 ? "tel_orta" : "tel_kotu";
+  const sinif = skor >= 75 ? "iyi" : skor >= 50 ? "orta" : "kotu";
+  const mesaj = tf(key, { s: skor, w: okunusGoster(item.tr) });
+  const okunan = duyulan ? `<div class="duyulan">${t("duydugum")} "${arapcaOkunus(duyulan) || duyulan}"</div>` : "";
   alan.innerHTML = `<div class="telaffuz-sonuc ${sinif}">${mesaj}${okunan}</div>`;
 }
 
@@ -446,26 +613,46 @@ function dersAc(dersId) {
   const icerik = $("#dersIcerik");
   icerik.innerHTML = `
     <div class="card">
-      <h2>${ders.baslik}</h2>
-      <p class="ipucu">🔊 dinle, 🎤 kendin söyle ve telaffuzunu test et.</p>
+      <h2>${cAl(ders.baslik)}</h2>
+      <p class="ipucu">${t("ders_ipucu")}</p>
+      <button class="btn ses" id="dersCal" style="width:100%;margin-bottom:8px">${t("ders_dinle")}</button>
       ${ders.items.map((it, i) => kelimeKartiHTML(it, "d" + i)).join("")}
       <button class="btn primary" id="dersiBitirBtn" style="margin-top:12px;width:100%">
-        ${S.bitenDersler[dersId] ? "✅ Bu dersi bitirdin" : "Dersi Bitir ✓"}
+        ${S.bitenDersler[dersId] ? t("ders_bitti") : t("dersi_bitir")}
       </button>
     </div>`;
   ders.items.forEach((it, i) => kelimeKartiBagla(icerik, it, "d" + i));
+  $("#dersCal").onclick = async () => {
+    const btn = $("#dersCal");
+    if (calmaAktif) { sesiDurdur(); btn.textContent = t("ders_dinle"); return; }
+    calmaAktif = true;
+    btn.textContent = t("ders_dinle_dur");
+    for (const it of ders.items) {
+      if (!calmaAktif) break;
+      const kart = btn.parentElement.querySelectorAll(".kelime-kart")[ders.items.indexOf(it)];
+      if (kart) kart.scrollIntoView({ behavior: "smooth", block: "center" });
+      await seslendirAsync(it.ar);
+      S.stats.dinleme++;
+      hedefTamamla("dinleme");
+      if (!calmaAktif) break;
+      await new Promise(r => setTimeout(r, 700));
+    }
+    calmaAktif = false;
+    kaydet();
+    if ($("#dersCal")) $("#dersCal").textContent = t("ders_dinle");
+  };
   $("#dersiBitirBtn").onclick = () => {
     if (!S.bitenDersler[dersId]) {
       S.bitenDersler[dersId] = true;
       kaydet();
       hedefTamamla("ders");
-      xpEkle(15, "Yeni ders bitti");
+      xpEkle(15, "xp_yeniders");
       dersSecicileriDoldur();
       konfetiAt();
       dersAc(dersId);
     } else {
       hedefTamamla("ders");
-      toast("Bu ders zaten tamam — tekrar etmek süper! 💪");
+      toast(t("ders_tekrar_toast"));
     }
   };
 }
@@ -481,7 +668,8 @@ let quiz = null;
 function quizHavuzu() {
   const secim = $("#quizDersSecimi").value;
   if (secim === "__hepsi__") return tumDersler().flatMap(d => d.items);
-  return tumDersler().find(d => d.id === secim).items;
+  const ders = tumDersler().find(d => d.id === secim);
+  return ders ? ders.items : tumDersler().flatMap(d => d.items);
 }
 
 function quizBaslat(tur) {
@@ -499,16 +687,16 @@ function quizSoruGoster() {
   const secenekler = karistir([q, ...yanlislar]);
   const alan = $("#quizAlani");
   alan.innerHTML = `
-    <button class="btn geri" data-geri="pratik">← Çık</button>
-    <div class="quiz-ilerleme">Soru ${quiz.indeks + 1} / ${quiz.sorular.length} — Doğru: ${quiz.dogru}</div>
+    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <div class="quiz-ilerleme">${t("soru")} ${quiz.indeks + 1} / ${quiz.sorular.length} — ${t("dogru")}: ${quiz.dogru}</div>
     <div class="card">
       ${quiz.tur === "dinleme"
-        ? `<div style="text-align:center"><button class="btn ses" id="quizSes" style="font-size:1.5rem;padding:14px 26px">🔊 Dinle</button></div>
-           <p class="ipucu" style="text-align:center">Sesi dinle — anlamı hangisi?</p>`
-        : `<div class="quiz-soru">${q.tr}</div>
-           <p class="ipucu" style="text-align:center">Bu ifadenin anlamı hangisi?</p>`}
+        ? `<div style="text-align:center"><button class="btn ses" id="quizSes" style="font-size:1.5rem;padding:14px 26px">🔊</button></div>
+           <p class="ipucu" style="text-align:center">${t("dinleme_ipucu")}</p>`
+        : `<div class="quiz-soru">${okunusGoster(q.tr)}</div>
+           <p class="ipucu" style="text-align:center">${t("quiz_soru_ipucu")}</p>`}
       <div class="quiz-secenekler">
-        ${secenekler.map((s, i) => `<button class="quiz-secenek" data-i="${i}">${s.anlam}</button>`).join("")}
+        ${secenekler.map((s, i) => `<button class="quiz-secenek" data-i="${i}">${cAl(s.anlam)}</button>`).join("")}
       </div>
     </div>`;
   geriButonlariBagla();
@@ -518,10 +706,10 @@ function quizSoruGoster() {
   }
   alan.querySelectorAll(".quiz-secenek").forEach((btn, i) => {
     btn.onclick = () => {
-      const dogruMu = secenekler[i].anlam === q.anlam;
+      const dogruMu = secenekler[i] === q;
       alan.querySelectorAll(".quiz-secenek").forEach((b, j) => {
         b.disabled = true;
-        if (secenekler[j].anlam === q.anlam) b.classList.add("dogru");
+        if (secenekler[j] === q) b.classList.add("dogru");
       });
       if (dogruMu) { quiz.dogru++; btn.classList.add("dogru"); titret(40); }
       else { btn.classList.add("yanlis"); titret([60, 40, 60]); }
@@ -542,22 +730,22 @@ function quizBitir() {
   $("#quizAlani").innerHTML = `
     <div class="card" style="text-align:center">
       <div class="skor-genis">${yuzde >= 80 ? "🏆" : yuzde >= 60 ? "🎉" : "💪"} %${yuzde}</div>
-      <p>${quiz.dogru} / ${quiz.sorular.length} doğru</p>
-      <p>${yuzde >= 80 ? "Mumteez! (Mükemmel!)" : yuzde >= 60 ? "Kuveyyis! (İyi!)" : "Tekrar dene — meeşi? (tamam mı?)"}</p>
-      <button class="btn primary" data-geri="pratik">Pratik Menüsü</button>
+      <p>${quiz.dogru} / ${quiz.sorular.length}</p>
+      <p>${yuzde >= 80 ? t("mukemmel") : yuzde >= 60 ? t("iyi") : t("tekrar_dene")}</p>
+      <button class="btn primary" data-geri="pratik">${t("yeni_quiz")}</button>
     </div>`;
   geriButonlariBagla();
   if (yuzde >= 60) hedefTamamla("quiz");
   if (yuzde >= 80) konfetiAt();
-  xpEkle(Math.max(2, Math.round(yuzde / 10)), "Quiz skoru");
+  xpEkle(Math.max(2, Math.round(yuzde / 10)), "xp_skor");
 }
 
 // ===================== EŞLEŞTİRME OYUNU =====================
 function eslestirmeBaslat() {
   const havuz = karistir(quizHavuzu()).slice(0, 6);
   const kartlar = karistir([
-    ...havuz.map(it => ({ tip: "tr", deger: it.tr, es: it.anlam, ar: it.ar })),
-    ...havuz.map(it => ({ tip: "anlam", deger: it.anlam, es: it.tr }))
+    ...havuz.map(it => ({ tip: "tr", deger: okunusGoster(it.tr), key: it.tr, ar: it.ar })),
+    ...havuz.map(it => ({ tip: "anlam", deger: cAl(it.anlam), key: it.tr }))
   ]);
   $("#pratikMenu").classList.add("hidden");
   const alan = $("#eslestirmeAlani");
@@ -565,8 +753,8 @@ function eslestirmeBaslat() {
   let secili = null, kalan = havuz.length;
   const baslangic = Date.now();
   alan.innerHTML = `
-    <button class="btn geri" data-geri="pratik">← Çık</button>
-    <p class="ipucu" style="text-align:center">Okunuş ile anlamı eşleştir 🧩</p>
+    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <p class="ipucu" style="text-align:center">${t("esl_ipucu")}</p>
     <div class="esl-izgara">
       ${kartlar.map((k, i) => `<button class="esl-kart" data-i="${i}">${k.deger}</button>`).join("")}
     </div>`;
@@ -583,8 +771,7 @@ function eslestirmeBaslat() {
         return;
       }
       if (secili.el === el) { el.classList.remove("secili"); secili = null; return; }
-      const eslesti = (secili.k.tip !== k.tip) &&
-        (secili.k.es === k.deger || k.es === secili.k.deger);
+      const eslesti = secili.k.tip !== k.tip && secili.k.key === k.key;
       if (eslesti) {
         el.classList.add("eslesti");
         secili.el.classList.add("eslesti");
@@ -597,12 +784,12 @@ function eslestirmeBaslat() {
             alan.innerHTML = `
               <div class="card" style="text-align:center">
                 <div class="skor-genis">🧩⚡</div>
-                <p>Hepsini <b>${sn} saniyede</b> eşleştirdin!</p>
-                <button class="btn primary" data-geri="pratik">Pratik Menüsü</button>
+                <p>${tf("esl_sonuc", { n: sn })}</p>
+                <button class="btn primary" data-geri="pratik">${t("yeni_quiz")}</button>
               </div>`;
             geriButonlariBagla();
             hedefTamamla("quiz");
-            xpEkle(10, "Eşleştirme bitti");
+            xpEkle(10, "xp_esl");
             konfetiAt();
           }, 400);
         }
@@ -640,33 +827,33 @@ function flashcardGoster() {
     alan.innerHTML = `
       <div class="card" style="text-align:center">
         <div class="skor-genis">🃏✅</div>
-        <p>Tekrar bitti! ${fdeste.kartlar.length} kart gözden geçirdin.</p>
-        <button class="btn primary" data-geri="pratik">Pratik Menüsü</button>
+        <p>${tf("fc_bitti", { n: fdeste.kartlar.length })}</p>
+        <button class="btn primary" data-geri="pratik">${t("yeni_quiz")}</button>
       </div>`;
     geriButonlariBagla();
-    xpEkle(8, "Flashcard tekrarı");
+    xpEkle(8, "xp_fc");
     return;
   }
   const k = fdeste.kartlar[fdeste.indeks];
   alan.innerHTML = `
-    <button class="btn geri" data-geri="pratik">← Çık</button>
-    <div class="quiz-ilerleme">${fdeste.indeks + 1} / ${fdeste.kartlar.length} ${fdeste.srsModu ? "— 🧠 akıllı tekrar" : "— rastgele tekrar"}</div>
+    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <div class="quiz-ilerleme">${fdeste.indeks + 1} / ${fdeste.kartlar.length} ${fdeste.srsModu ? t("fc_akilli") : t("fc_rastgele")}</div>
     <div class="fkart" id="fkart">
       <div class="fkart-ic">
         <div class="fkart-yuz">
-          <div class="anlam" style="font-size:1.2rem">${k.anlam}</div>
-          <small class="ipucu">Arapçasını hatırla, karta dokun 👆</small>
+          <div class="anlam" style="font-size:1.2rem">${cAl(k.anlam)}</div>
+          <small class="ipucu">${t("fc_on")}</small>
         </div>
         <div class="fkart-yuz fkart-arka">
-          <div class="okunus" style="font-size:1.5rem">${k.tr}</div>
+          <div class="okunus" style="font-size:1.5rem">${okunusGoster(k.tr)}</div>
           <div class="arapca-yazi">${k.ar}</div>
-          <button class="btn ses" id="fSes">🔊 Dinle</button>
+          <button class="btn ses" id="fSes">${t("dinle")}</button>
         </div>
       </div>
     </div>
     <div class="fkart-btnler">
-      <button class="btn danger" id="fBilemedim">😵 Bilemedim</button>
-      <button class="btn primary" id="fBildim">😎 Bildim</button>
+      <button class="btn danger" id="fBilemedim">${t("bilemedim")}</button>
+      <button class="btn primary" id="fBildim">${t("bildim")}</button>
     </div>`;
   geriButonlariBagla();
   const fk = $("#fkart");
@@ -681,16 +868,17 @@ let dlg = null;
 
 function diyalogMenuGoster() {
   $("#konusmaMenu").classList.add("hidden");
+  $("#telaffuzAlani").classList.add("hidden");
   const alan = $("#diyalogAlani");
   alan.classList.remove("hidden");
   alan.innerHTML = `
-    <button class="btn geri" data-geri="konusma">← Geri</button>
-    <h3>💬 Sesli Diyalog — uygulamayla konuş!</h3>
-    <p class="ipucu">Karşındaki konuşur (sesli), sıra sana gelince repliğini mikrofonla söylersin.</p>
+    <button class="btn geri" data-geri="konusma">${t("geri")}</button>
+    <h3>${t("dlg_baslik")}</h3>
+    <p class="ipucu">${t("dlg_ipucu")}</p>
     ${DIYALOGLAR.map(d => `
       <button class="mod-kart" style="width:100%;margin:6px 0" data-dlg="${d.id}">
-        <b>${d.baslik} ${S.bitenDiyaloglar[d.id] ? "✅" : ""}</b>
-        <small>${d.seviye} • ${d.adimlar.length} replik</small>
+        <b>${cAl(d.baslik)} ${S.bitenDiyaloglar[d.id] ? "✅" : ""}</b>
+        <small>${cAl(d.seviye)} • ${d.adimlar.length} ${t("replik")}</small>
       </button>`).join("")}`;
   geriButonlariBagla();
   alan.querySelectorAll("[data-dlg]").forEach(b => {
@@ -703,8 +891,8 @@ function diyalogBaslat(id) {
   dlg = { d, adim: 0 };
   const alan = $("#diyalogAlani");
   alan.innerHTML = `
-    <button class="btn geri" id="dlgGeri">← Diyaloglar</button>
-    <h3>${d.baslik}</h3>
+    <button class="btn geri" id="dlgGeri">${t("geri")}</button>
+    <h3>${cAl(d.baslik)}</h3>
     <div id="dlgBalonlar"></div>
     <div id="dlgSira"></div>`;
   $("#dlgGeri").onclick = () => { speechSynthesis.cancel(); diyalogMenuGoster(); };
@@ -718,14 +906,14 @@ function diyalogAdim() {
       S.bitenDiyaloglar[d.id] = true;
       S.stats.diyalog++;
       kaydet();
-      xpEkle(40, "Diyalog tamamlandı");
+      xpEkle(40, "xp_dlg");
     } else {
-      xpEkle(10, "Diyalog tekrarı");
+      xpEkle(10, "xp_dlg2");
     }
     konfetiAt();
     $("#dlgSira").innerHTML = `
-      <div class="kutla">🎭 <b>Mumteez!</b> Diyaloğu tamamladın!<br>
-      <button class="btn primary" style="margin-top:8px" id="dlgBitti">Diyaloglara Dön</button></div>`;
+      <div class="kutla">${t("dlg_tamamlandi")}<br>
+      <button class="btn primary" style="margin-top:8px" id="dlgBitti">${t("dlg_don")}</button></div>`;
     $("#dlgBitti").onclick = () => diyalogMenuGoster();
     rozetKontrol();
     return;
@@ -739,13 +927,13 @@ function diyalogAdim() {
   } else {
     $("#dlgSira").innerHTML = `
       <div class="diyalog-sira">
-        <div class="balon-kisi ipucu">🎬 Sıra sende! Şunu söyle:</div>
-        <div class="okunus">${adim.tr}</div>
-        <div class="anlam">${adim.anlam}</div>
+        <div class="balon-kisi ipucu">${t("dlg_sira")}</div>
+        <div class="okunus">${okunusGoster(adim.tr)}</div>
+        <div class="anlam">${cAl(adim.anlam)}</div>
         <div class="kelime-btnler" style="margin-top:8px">
-          <button class="btn ses" id="dlgIpucu">🔊 İpucu</button>
-          <button class="btn mic" id="dlgMic">🎤 Söyle</button>
-          <button class="btn" id="dlgAtla">⏭️ Geç</button>
+          <button class="btn ses" id="dlgIpucu">${t("ipucu_btn")}</button>
+          <button class="btn mic" id="dlgMic">${t("soyle")}</button>
+          <button class="btn" id="dlgAtla">${t("gec")}</button>
         </div>
         <div id="dlgDurum"></div>
       </div>`;
@@ -769,7 +957,7 @@ function diyalogAdim() {
             setTimeout(diyalogAdim, 400);
           } else {
             titret([60, 40, 60]);
-            $("#dlgDurum").innerHTML = `<div class="telaffuz-sonuc orta">%${skor} — bir daha dene! 🔊 İpucu'ya basıp dinleyebilirsin.<div class="duyulan">Duyduğum: "${arapcaOkunus(alternatifler[0]) || alternatifler[0]}"</div></div>`;
+            $("#dlgDurum").innerHTML = `<div class="telaffuz-sonuc orta">${tf("dlg_yanlis", { s: skor })}<div class="duyulan">${t("duydugum")} "${arapcaOkunus(alternatifler[0]) || alternatifler[0]}"</div></div>`;
           }
         },
         bitti: () => mic.classList.remove("dinliyor")
@@ -784,9 +972,9 @@ function balonEkle(adim) {
   div.className = "diyalog-balon " + adim.rol;
   div.innerHTML = `
     <div class="balon">
-      <div class="kisi">${adim.rol === "app" ? adim.kisi : "Sen"}</div>
-      <div class="okunus">${adim.tr}</div>
-      <div class="anlam">${adim.anlam}</div>
+      <div class="kisi">${adim.rol === "app" ? cAl(adim.kisi) : t("sen")}</div>
+      <div class="okunus">${okunusGoster(adim.tr)}</div>
+      <div class="anlam">${cAl(adim.anlam)}</div>
     </div>`;
   div.querySelector(".balon").onclick = () => seslendir(adim.ar);
   kap.appendChild(div);
@@ -813,14 +1001,17 @@ $("#modAnlam").onclick = () => quizBaslat("anlam");
 $("#modDinleme").onclick = () => quizBaslat("dinleme");
 $("#modEslestirme").onclick = eslestirmeBaslat;
 $("#modFlashcard").onclick = flashcardBaslat;
+$("#modHiz").onclick = hizTuruBaslat;
+$("#modSayi").onclick = sayiAntrenorBaslat;
 
 function geriButonlariBagla() {
   $$("[data-geri]").forEach(b => {
     b.onclick = () => {
-      speechSynthesis.cancel();
+      sesiDurdur();
+      if (hizSayac) { clearInterval(hizSayac); hizSayac = null; }
       const panel = b.dataset.geri;
       if (panel === "pratik") {
-        ["#quizAlani", "#eslestirmeAlani", "#flashcardAlani"].forEach(s => $(s).classList.add("hidden"));
+        ["#quizAlani", "#eslestirmeAlani", "#flashcardAlani", "#hizAlani", "#sayiAlani"].forEach(s => $(s).classList.add("hidden"));
         $("#pratikMenu").classList.remove("hidden");
       }
       if (panel === "konusma") {
@@ -832,18 +1023,177 @@ function geriButonlariBagla() {
 }
 geriButonlariBagla();
 
+// ===================== ⚡ HIZ TURU =====================
+let hizSayac = null;
+
+function hizTuruBaslat() {
+  const havuz = tumDersler().flatMap(d => d.items);
+  let skor = 0, kalanSn = 60;
+  $("#pratikMenu").classList.add("hidden");
+  const alan = $("#hizAlani");
+  alan.classList.remove("hidden");
+
+  function soruGoster() {
+    const q = havuz[Math.floor(Math.random() * havuz.length)];
+    const yanlislar = karistir(havuz.filter(x => x.tr !== q.tr)).slice(0, 3);
+    const secenekler = karistir([q, ...yanlislar]);
+    alan.innerHTML = `
+      <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+      <div class="quiz-ilerleme">⏱️ ${t("sure")}: <b id="hizSure">${kalanSn}</b> — ${t("skor")}: <b>${skor}</b></div>
+      <div class="sure-bar"><div id="hizBar" style="width:${(kalanSn / 60) * 100}%"></div></div>
+      <div class="card">
+        <div class="quiz-soru">${okunusGoster(q.tr)}</div>
+        <div class="quiz-secenekler">
+          ${secenekler.map((s, i) => `<button class="quiz-secenek" data-i="${i}">${cAl(s.anlam)}</button>`).join("")}
+        </div>
+      </div>`;
+    geriButonlariBagla();
+    alan.querySelectorAll(".quiz-secenek").forEach((btn, i) => {
+      btn.onclick = () => {
+        if (secenekler[i] === q) { skor++; titret(30); }
+        else { srsKaydet(q, false); titret([50, 30, 50]); btn.classList.add("yanlis"); }
+        soruGoster();
+      };
+    });
+  }
+
+  hizSayac = setInterval(() => {
+    kalanSn--;
+    const sureEl = $("#hizSure"), barEl = $("#hizBar");
+    if (sureEl) sureEl.textContent = kalanSn;
+    if (barEl) barEl.style.width = (kalanSn / 60) * 100 + "%";
+    if (kalanSn <= 0) {
+      clearInterval(hizSayac);
+      hizSayac = null;
+      alan.innerHTML = `
+        <div class="card" style="text-align:center">
+          <div class="skor-genis">⚡ ${skor}</div>
+          <p>${tf("hiz_bitti", { n: skor })}</p>
+          <button class="btn primary" data-geri="pratik">${t("yeni_quiz")}</button>
+        </div>`;
+      geriButonlariBagla();
+      if (skor >= 5) hedefTamamla("quiz");
+      if (skor >= 12) konfetiAt();
+      xpEkle(Math.max(2, skor), "xp_hiz");
+    }
+  }, 1000);
+
+  soruGoster();
+}
+
+// ===================== 🔢 SAYI ANTRENÖRÜ =====================
+const SAYI_BIRIM = {
+  ar: ["صفر", "واحد", "اتنين", "تلاتة", "أربعة", "خمسة", "ستة", "سبعة", "تمانية", "تسعة", "عشرة"],
+  tr: ["sifr", "vaahid", "itneyn", "teleete", "arbaa", "hamse", "sitte", "seb'a", "temenye", "tis'a", "aşara"]
+};
+const SAYI_ONLU = {
+  ar: ["حداشر", "اتناشر", "تلتاشر", "أربعتاشر", "خمستاشر", "ستاشر", "سبعتاشر", "تمنتاشر", "تسعتاشر"],
+  tr: ["hidaaşar", "itnaaşar", "talattaaşar", "arbaataaşar", "hamastaaşar", "sittaaşar", "sabaataaşar", "tamantaaşar", "tisaataaşar"]
+};
+const SAYI_ONLAR = {
+  ar: ["عشرين", "تلاتين", "أربعين", "خمسين", "ستين", "سبعين", "تمانين", "تسعين"],
+  tr: ["işriin", "teleetiin", "arbaiin", "hamsiin", "sittiin", "sabaiin", "tamaniin", "tisaiin"]
+};
+const SAYI_YUZLER = {
+  ar: ["مية", "ميتين", "تلتمية", "ربعمية", "خمسمية", "ستمية", "سبعمية", "تمنمية", "تسعمية"],
+  tr: ["miyya", "miteyn", "tultumiyya", "rubumiyya", "humsumiyya", "suttumiyya", "subumiyya", "tumnumiyya", "tusumiyya"]
+};
+
+// 0-999 arası sayıyı Mısır Arapçasıyla söyle: { ar, tr }
+function sayiSoyle(n) {
+  if (n < 0 || n > 999) return null;
+  const arP = [], trP = [];
+  const yuz = Math.floor(n / 100), kalan = n % 100;
+  if (yuz > 0) { arP.push(SAYI_YUZLER.ar[yuz - 1]); trP.push(SAYI_YUZLER.tr[yuz - 1]); }
+  if (kalan > 0 || n === 0) {
+    let arK, trK;
+    if (kalan <= 10) { arK = SAYI_BIRIM.ar[kalan]; trK = SAYI_BIRIM.tr[kalan]; }
+    else if (kalan < 20) { arK = SAYI_ONLU.ar[kalan - 11]; trK = SAYI_ONLU.tr[kalan - 11]; }
+    else {
+      const on = Math.floor(kalan / 10), bir = kalan % 10;
+      if (bir === 0) { arK = SAYI_ONLAR.ar[on - 2]; trK = SAYI_ONLAR.tr[on - 2]; }
+      else {
+        // Arapçada önce birlik sonra onluk: 25 = "beş ve yirmi"
+        arK = SAYI_BIRIM.ar[bir] + " و" + SAYI_ONLAR.ar[on - 2];
+        trK = SAYI_BIRIM.tr[bir] + " ve " + SAYI_ONLAR.tr[on - 2];
+      }
+    }
+    arP.push(arK); trP.push(trK);
+  }
+  return { ar: arP.join(" و"), tr: trP.join(" ve ") };
+}
+
+function sayiAntrenorBaslat() {
+  $("#pratikMenu").classList.add("hidden");
+  const alan = $("#sayiAlani");
+  alan.classList.remove("hidden");
+  sayiSoruGoster();
+}
+
+function sayiSoruGoster() {
+  const alan = $("#sayiAlani");
+  const n = Math.floor(Math.random() * 999) + 1;
+  const dogru = sayiSoyle(n);
+  const yanlislar = [];
+  while (yanlislar.length < 3) {
+    const m = Math.floor(Math.random() * 999) + 1;
+    if (m !== n && !yanlislar.some(x => x.n === m)) yanlislar.push({ n: m, ...sayiSoyle(m) });
+  }
+  const secenekler = karistir([{ n, ...dogru }, ...yanlislar]);
+  alan.innerHTML = `
+    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <div class="card">
+      <p class="ipucu">${t("sayi_cevir_ipucu")}</p>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="sayiGirdi" min="0" max="999" placeholder="125"
+          style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--cizgi);background:var(--kart);color:var(--metin);font-size:1.1rem;font-family:inherit">
+        <button class="btn ses" id="sayiCevirBtn">🔊</button>
+      </div>
+      <div id="sayiCevirSonuc" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="quiz-soru">${n}</div>
+      <p class="ipucu" style="text-align:center">${t("sayi_quiz_ipucu")}</p>
+      <div class="quiz-secenekler">
+        ${secenekler.map((s, i) => `<button class="quiz-secenek" data-i="${i}">${okunusGoster(s.tr)}</button>`).join("")}
+      </div>
+    </div>`;
+  geriButonlariBagla();
+  $("#sayiCevirBtn").onclick = () => {
+    const v = parseInt($("#sayiGirdi").value, 10);
+    const s = isNaN(v) ? null : sayiSoyle(v);
+    if (!s) return;
+    $("#sayiCevirSonuc").innerHTML = `<div class="okunus">${okunusGoster(s.tr)}</div><div class="arapca-yazi">${s.ar}</div>`;
+    seslendir(s.ar);
+  };
+  alan.querySelectorAll(".quiz-secenek").forEach((btn, i) => {
+    btn.onclick = () => {
+      const dogruMu = secenekler[i].n === n;
+      alan.querySelectorAll(".quiz-secenek").forEach((b, j) => {
+        b.disabled = true;
+        if (secenekler[j].n === n) b.classList.add("dogru");
+      });
+      if (dogruMu) { btn.classList.add("dogru"); titret(40); xpEkle(3, "xp_sayi"); }
+      else { btn.classList.add("yanlis"); titret([60, 40, 60]); }
+      seslendir(dogru.ar);
+      setTimeout(sayiSoruGoster, 1600);
+    };
+  });
+}
+
 // ===================== ÇEVİRMEN =====================
-let ceviriYonu = "tr-ar";
+let ceviriYonu = "kaynak-ar"; // kaynak: kullanıcının dili (tr veya en)
 let sonCeviri = null;
 
-$("#yonTrAr").onclick = () => { ceviriYonu = "tr-ar"; yonGuncelle(); };
-$("#yonArTr").onclick = () => { ceviriYonu = "ar-tr"; yonGuncelle(); };
+function kaynakDilKodu() { return S.dil === "en" ? "en" : "tr"; }
+function kaynakKonusmaDili() { return S.dil === "en" ? "en-US" : "tr-TR"; }
+
+$("#yonTrAr").onclick = () => { ceviriYonu = "kaynak-ar"; yonGuncelle(); };
+$("#yonArTr").onclick = () => { ceviriYonu = "ar-kaynak"; yonGuncelle(); };
 function yonGuncelle() {
-  $("#yonTrAr").classList.toggle("active", ceviriYonu === "tr-ar");
-  $("#yonArTr").classList.toggle("active", ceviriYonu === "ar-tr");
-  $("#ceviriGirdi").placeholder = ceviriYonu === "tr-ar"
-    ? "Çevrilecek Türkçe cümleni yaz... ya da 🎤 ile söyle"
-    : "Arapça söyle 🎤 (ya da Arapça yaz)";
+  $("#yonTrAr").classList.toggle("active", ceviriYonu === "kaynak-ar");
+  $("#yonArTr").classList.toggle("active", ceviriYonu === "ar-kaynak");
+  $("#ceviriGirdi").placeholder = ceviriYonu === "kaynak-ar" ? t("ceviri_placeholder") : t("ceviri_placeholder_ar");
 }
 
 $("#ceviriMic").onclick = () => {
@@ -851,10 +1201,11 @@ $("#ceviriMic").onclick = () => {
   btn.classList.add("dinliyor");
   $("#ceviriDurum").classList.remove("hidden");
   dinle({
-    dil: ceviriYonu === "tr-ar" ? "tr-TR" : "ar-EG",
+    dil: ceviriYonu === "kaynak-ar" ? kaynakKonusmaDili() : "ar-EG",
     durumEl: $("#ceviriDurum"),
     sonuc: (alternatifler) => {
       $("#ceviriGirdi").value = alternatifler[0];
+      $("#ceviriDurum").innerHTML = "";
       $("#ceviriDurum").classList.add("hidden");
       ceviriYap();
     },
@@ -864,23 +1215,23 @@ $("#ceviriMic").onclick = () => {
 
 async function ceviriYap() {
   const metin = $("#ceviriGirdi").value.trim();
-  if (!metin) { toast("Önce bir cümle yaz ya da söyle."); return; }
-  const [kaynak, hedefDil] = ceviriYonu === "tr-ar" ? ["tr", "ar"] : ["ar", "tr"];
-  $("#ceviriYap").textContent = "Çevriliyor...";
+  if (!metin) { toast(t("cev_once")); return; }
+  const [kaynak, hedefDil] = ceviriYonu === "kaynak-ar" ? [kaynakDilKodu(), "ar"] : ["ar", kaynakDilKodu()];
+  $("#ceviriYap").textContent = t("cevriliyor");
   $("#ceviriYap").disabled = true;
   try {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(metin)}&langpair=${kaynak}|${hedefDil}`;
     const res = await fetch(url);
     const data = await res.json();
     const ceviri = data.responseData && data.responseData.translatedText;
-    if (!ceviri) throw new Error("boş");
+    if (!ceviri) throw new Error("bos");
     sonCeviri = { metin: ceviri, dil: hedefDil };
     S.stats.ceviri++; kaydet();
     $("#ceviriSonuc").classList.remove("hidden");
     $("#ceviriTelaffuz").innerHTML = "";
     if (hedefDil === "ar") {
       $("#ceviriMetin").textContent = arapcaOkunus(ceviri) || ceviri;
-      $("#ceviriOkunus").textContent = "Türkçe okunuş (yaklaşık) — 🔊 ile gerçek sesi dinle";
+      $("#ceviriOkunus").textContent = t("okunus_not");
       $("#ceviriArapca").textContent = ceviri;
       seslendir(ceviri);
     } else {
@@ -890,9 +1241,9 @@ async function ceviriYap() {
     }
     $("#ceviriSonuc").scrollIntoView({ behavior: "smooth", block: "center" });
   } catch (e) {
-    toast("⚠️ Çeviri yapılamadı. İnternet bağlantını kontrol et.");
+    toast(t("cev_hata"));
   } finally {
-    $("#ceviriYap").textContent = "Çevir";
+    $("#ceviriYap").textContent = t("cevir");
     $("#ceviriYap").disabled = false;
   }
 }
@@ -900,10 +1251,10 @@ $("#ceviriYap").onclick = ceviriYap;
 $("#ceviriDinle").onclick = () => {
   if (!sonCeviri) return;
   if (sonCeviri.dil === "ar") seslendir(sonCeviri.metin);
-  else turkceSeslendir(sonCeviri.metin);
+  else anadilSeslendir(sonCeviri.metin);
 };
 $("#ceviriTekrarla").onclick = () => {
-  if (!sonCeviri || sonCeviri.dil !== "ar") { toast("Önce Türkçe→Arapça bir çeviri yap."); return; }
+  if (!sonCeviri || sonCeviri.dil !== "ar") { toast(t("cev_yon_uyari")); return; }
   const btn = $("#ceviriTekrarla");
   btn.classList.add("dinliyor");
   dinle({
@@ -921,22 +1272,21 @@ $("#ceviriTekrarla").onclick = () => {
 
 // ===================== CEP REHBERİ =====================
 function rehberiCiz() {
-  $("#rehberKategoriler").innerHTML = CEP_REHBERI.map(kat => `
+  $("#rehberKategoriler").innerHTML = CEP_REHBERI.map((kat, ki) => `
     <div class="rehber-kategori">
-      <h3>${kat.kategori}</h3>
+      <h3>${cAl(kat.kategori)}</h3>
       ${kat.ifadeler.map((f, i) => `
-        <button class="rehber-ifade" data-kat="${kat.kategori}" data-i="${i}">
+        <button class="rehber-ifade" data-kat="${ki}" data-i="${i}">
           <span>
-            <span class="okunus" style="font-size:1rem">${f.tr}</span><br>
-            <span class="anlam" style="font-size:.85rem">${f.anlam}</span>
+            <span class="okunus" style="font-size:1rem">${okunusGoster(f.tr)}</span><br>
+            <span class="anlam" style="font-size:.85rem">${cAl(f.anlam)}</span>
           </span>
           <span class="hoparlor">📢</span>
         </button>`).join("")}
     </div>`).join("");
   $$(".rehber-ifade").forEach(btn => {
     btn.onclick = () => {
-      const kat = CEP_REHBERI.find(k => k.kategori === btn.dataset.kat);
-      const f = kat.ifadeler[+btn.dataset.i];
+      const f = CEP_REHBERI[+btn.dataset.kat].ifadeler[+btn.dataset.i];
       seslendir(f.ar);
       titret(20);
     };
@@ -950,8 +1300,8 @@ function ajandayiCiz() {
   liste.innerHTML = CURRICULUM.map(hafta => {
     if (hafta.tekrar) {
       return `<div class="card hafta-kart">
-        <div class="hafta-baslik"><h3>Hafta ${hafta.hafta}: ${hafta.baslik}</h3><span>🔁</span></div>
-        <p class="ipucu">${hafta.aciklama}</p>
+        <div class="hafta-baslik"><h3>${t("hafta")} ${hafta.hafta}: ${cAl(hafta.baslik)}</h3><span>🔁</span></div>
+        <p class="ipucu">${cAl(hafta.aciklama)}</p>
       </div>`;
     }
     const biten = hafta.dersler.filter(d => S.bitenDersler[d.id]).length;
@@ -960,13 +1310,13 @@ function ajandayiCiz() {
     const yuzde = Math.round((biten / hafta.dersler.length) * 100);
     return `<div class="card hafta-kart">
       <div class="hafta-baslik">
-        <h3>Hafta ${hafta.hafta}: ${hafta.baslik}</h3>
+        <h3>${t("hafta")} ${hafta.hafta}: ${cAl(hafta.baslik)}</h3>
         <span class="hafta-yuzde">%${yuzde}</span>
       </div>
       ${hafta.dersler.map(d => `
         <div class="ders-satir">
-          <span>${S.bitenDersler[d.id] ? "✅" : "⬜"} ${d.baslik}</span>
-          <button class="btn" data-ders="${d.id}">Aç</button>
+          <span>${S.bitenDersler[d.id] ? "✅" : "⬜"} ${cAl(d.baslik)}</span>
+          <button class="btn" data-ders="${d.id}">${t("ac")}</button>
         </div>`).join("")}
     </div>`;
   }).join("");
@@ -979,38 +1329,53 @@ function ajandayiCiz() {
   $("#genelBar").style.width = genelYuzde + "%";
   $("#genelYuzde").textContent = "%" + genelYuzde;
 
-  $("#istatistikler").innerHTML = `
-    <div class="ders-satir"><span>🧠 Çözülen quiz</span><b>${S.stats.quiz}</b></div>
-    <div class="ders-satir"><span>🎤 Konuşma denemesi</span><b>${S.stats.konusma}</b></div>
-    <div class="ders-satir"><span>👂 Dinlenen kelime</span><b>${S.stats.dinleme}</b></div>
-    <div class="ders-satir"><span>💬 Biten diyalog</span><b>${Object.keys(S.bitenDiyaloglar).length}</b></div>
-    <div class="ders-satir"><span>🌐 Yapılan çeviri</span><b>${S.stats.ceviri}</b></div>
-    <div class="ders-satir"><span>🃏 Tekrar bekleyen kelime</span><b>${srsBekleyenler().length}</b></div>`;
+  const istatistikEtiket = S.dil === "en"
+    ? ["🧠 Quizzes taken", "🎤 Speaking attempts", "👂 Words listened", "💬 Dialogues completed", "🌐 Translations made", "🃏 Words awaiting review"]
+    : ["🧠 Çözülen quiz", "🎤 Konuşma denemesi", "👂 Dinlenen kelime", "💬 Biten diyalog", "🌐 Yapılan çeviri", "🃏 Tekrar bekleyen kelime"];
+  const degerler = [S.stats.quiz, S.stats.konusma, S.stats.dinleme, Object.keys(S.bitenDiyaloglar).length, S.stats.ceviri, srsBekleyenler().length];
+  $("#istatistikler").innerHTML = istatistikEtiket.map((e, i) =>
+    `<div class="ders-satir"><span>${e}</span><b>${degerler[i]}</b></div>`).join("");
 
+  aktiviteTakvimiCiz();
   rozetleriCiz();
+}
+
+// Son 28 günün XP ısı haritası
+function aktiviteTakvimiCiz() {
+  const kap = $("#aktiviteTakvim");
+  if (!kap) return;
+  const gunler = [];
+  for (let i = 27; i >= 0; i--) {
+    const tarih = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    const xp = (S.aktivite && S.aktivite[tarih]) || 0;
+    const seviye = xp === 0 ? 0 : xp < 30 ? 1 : xp < 80 ? 2 : 3;
+    gunler.push(`<div class="takvim-gun s${seviye}" title="${tarih}: ${xp} XP"></div>`);
+  }
+  kap.innerHTML = gunler.join("");
 }
 
 // ===================== ROZETLER =====================
 const ROZETLER = [
-  { id: "ilkders", ikon: "🌱", ad: "İlk Ders", kontrol: () => Object.keys(S.bitenDersler).length >= 1 },
-  { id: "hafta1", ikon: "🥉", ad: "Hafta 1", kontrol: () => CURRICULUM[0].dersler.every(d => S.bitenDersler[d.id]) },
-  { id: "hafta2", ikon: "🥈", ad: "Hafta 2", kontrol: () => CURRICULUM[1].dersler.every(d => S.bitenDersler[d.id]) },
-  { id: "tumders", ikon: "🥇", ad: "Tüm Dersler", kontrol: () => tumDersler().every(d => S.bitenDersler[d.id]) },
-  { id: "ilkdlg", ikon: "🎭", ad: "İlk Diyalog", kontrol: () => Object.keys(S.bitenDiyaloglar).length >= 1 },
-  { id: "tumdlg", ikon: "🗣️", ad: "Konuşkan", kontrol: () => DIYALOGLAR.every(d => S.bitenDiyaloglar[d.id]) },
-  { id: "seri3", ikon: "🔥", ad: "3 Gün Seri", kontrol: () => S.seri >= 3 },
-  { id: "seri7", ikon: "⚡", ad: "7 Gün Seri", kontrol: () => S.seri >= 7 },
-  { id: "xp300", ikon: "⭐", ad: "300 XP", kontrol: () => S.xp >= 300 },
-  { id: "xp1000", ikon: "🌟", ad: "1000 XP", kontrol: () => S.xp >= 1000 },
-  { id: "xp3000", ikon: "👑", ad: "3000 XP", kontrol: () => S.xp >= 3000 }
+  { id: "ilkders", ikon: "🌱", ad: "İlk Ders", adEn: "First Lesson", kontrol: () => Object.keys(S.bitenDersler).length >= 1 },
+  { id: "hafta1", ikon: "🥉", ad: "Hafta 1", adEn: "Week 1", kontrol: () => CURRICULUM[0].dersler.every(d => S.bitenDersler[d.id]) },
+  { id: "hafta2", ikon: "🥈", ad: "Hafta 2", adEn: "Week 2", kontrol: () => CURRICULUM[1].dersler.every(d => S.bitenDersler[d.id]) },
+  { id: "tumders", ikon: "🥇", ad: "Tüm Dersler", adEn: "All Lessons", kontrol: () => tumDersler().every(d => S.bitenDersler[d.id]) },
+  { id: "ilkdlg", ikon: "🎭", ad: "İlk Diyalog", adEn: "First Dialogue", kontrol: () => Object.keys(S.bitenDiyaloglar).length >= 1 },
+  { id: "tumdlg", ikon: "🗣️", ad: "Konuşkan", adEn: "Talkative", kontrol: () => DIYALOGLAR.every(d => S.bitenDiyaloglar[d.id]) },
+  { id: "seri3", ikon: "🔥", ad: "3 Gün Seri", adEn: "3-Day Streak", kontrol: () => S.seri >= 3 },
+  { id: "seri7", ikon: "⚡", ad: "7 Gün Seri", adEn: "7-Day Streak", kontrol: () => S.seri >= 7 },
+  { id: "xp300", ikon: "⭐", ad: "300 XP", adEn: "300 XP", kontrol: () => S.xp >= 300 },
+  { id: "xp1000", ikon: "🌟", ad: "1000 XP", adEn: "1000 XP", kontrol: () => S.xp >= 1000 },
+  { id: "xp3000", ikon: "👑", ad: "3000 XP", adEn: "3000 XP", kontrol: () => S.xp >= 3000 }
 ];
+function rozetAd(r) { return S.dil === "en" ? r.adEn : r.ad; }
 
 function rozetKontrol() {
   for (const r of ROZETLER) {
     if (!S.rozetler[r.id] && r.kontrol()) {
       S.rozetler[r.id] = true;
       kaydet();
-      toast(`🏅 Yeni rozet: ${r.ikon} ${r.ad}!`, 3000);
+      toast(`🏅 ${t("rozet_yeni")}: ${r.ikon} ${rozetAd(r)}!`, 3000);
       konfetiAt();
     }
   }
@@ -1021,7 +1386,7 @@ function rozetleriCiz() {
   $("#rozetler").innerHTML = ROZETLER.map(r => `
     <div class="rozet ${S.rozetler[r.id] ? "" : "kilitli"}">
       <div class="ikon">${r.ikon}</div>
-      <div class="ad">${r.ad}</div>
+      <div class="ad">${rozetAd(r)}</div>
     </div>`).join("");
 }
 
@@ -1031,6 +1396,8 @@ $("#settingsBtn").onclick = () => {
   $("#ayarArapca").checked = S.arapcaGoster;
   $("#ayarKaranlik").checked = S.karanlik;
   $("#ayarHiz").value = S.hiz;
+  $("#ayarDil").value = S.dil;
+  $("#ayarOaiKey").value = S.oaiKey;
   sesleriYukle();
   ayarDlg.showModal();
 };
@@ -1039,12 +1406,38 @@ $("#ayarArapca").onchange = (e) => { S.arapcaGoster = e.target.checked; kaydet()
 $("#ayarKaranlik").onchange = (e) => { S.karanlik = e.target.checked; kaydet(); gorunumUygula(); };
 $("#ayarHiz").onchange = (e) => { S.hiz = parseFloat(e.target.value); kaydet(); };
 $("#ayarSes").onchange = (e) => { S.sesURI = e.target.value; kaydet(); };
+$("#ayarDil").onchange = (e) => { dilDegistir(e.target.value); };
+$("#ayarOaiKey").onchange = (e) => { S.oaiKey = e.target.value.trim(); sesOnbellek.clear(); kaydet(); };
 $("#ayarSifirla").onclick = () => {
-  if (confirm("Tüm ilerlemen (XP, seri, biten dersler) silinecek. Emin misin?")) {
+  if (confirm(t("sifir_onay"))) {
     localStorage.removeItem("misirca");
     location.reload();
   }
 };
+$("#dilBtn").onclick = () => dilDegistir(S.dil === "tr" ? "en" : "tr");
+
+$("#paylasBtn").onclick = async () => {
+  const metin = tf("paylas_metin", { xp: S.xp, seviye: cAl(seviyeBul(S.xp).ad) });
+  if (navigator.share) {
+    try { await navigator.share({ text: metin }); } catch (e) {}
+  } else {
+    try { await navigator.clipboard.writeText(metin); toast(t("kopyalandi")); } catch (e) {}
+  }
+};
+
+function dilDegistir(yeni) {
+  S.dil = yeni;
+  kaydet();
+  applyI18n();
+  dersSecicileriDoldur();
+  bugunuCiz();
+  rehberiCiz();
+  ajandayiCiz();
+  const acikDers = $("#dersSecimi").value;
+  if (acikDers) dersAc(acikDers);
+  if (!$("#telaffuzAlani").classList.contains("hidden")) konusmaCiz();
+  if (!$("#diyalogAlani").classList.contains("hidden")) diyalogMenuGoster();
+}
 
 function gorunumUygula() {
   document.body.classList.toggle("arapca-acik", S.arapcaGoster);
@@ -1061,12 +1454,12 @@ function ustBilgiGuncelle() {
 function baslat() {
   gunlukHedefHazirla();
   gorunumUygula();
+  applyI18n();
   ustBilgiGuncelle();
   dersSecicileriDoldur();
   bugunuCiz();
   dersAc(gununDersi().id);
   rehberiCiz();
-  yonGuncelle();
   sesleriYukle();
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
