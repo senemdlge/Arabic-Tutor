@@ -594,6 +594,30 @@ $$(".tab").forEach(btn => {
 
 function sekmeyeGit(ad) { $(`.tab[data-tab="${ad}"]`).click(); }
 
+// Swipe ile sekme geçişi: yatay hareket baskınsa soldaki/sağdaki sekmeye geç.
+// Kenardan başlayan dokunuşlar (iOS geri hareketi) ve etkileşimli alanlar hariç.
+(() => {
+  const sira = ["bugun", "ders", "pratik", "konusma", "cevirmen", "rehber", "ajanda"];
+  let sx = 0, sy = 0, st = 0, gecerli = false;
+  document.addEventListener("touchstart", (e) => {
+    const d = e.touches[0];
+    gecerli = d.clientX > 28 && d.clientX < window.innerWidth - 28 &&
+      !e.target.closest("input, textarea, select, dialog, .fkart, .esl-izgara, .canli-btnler, nav#tabs");
+    sx = d.clientX; sy = d.clientY; st = Date.now();
+  }, { passive: true });
+  document.addEventListener("touchend", (e) => {
+    if (!gecerli) return;
+    const d = e.changedTouches[0];
+    const dx = d.clientX - sx, dy = d.clientY - sy;
+    if (Date.now() - st > 600) return;                       // yavaş sürükleme: kaydırma değil
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // dikey kaydırmaya karışma
+    const aktif = $(".tab.active");
+    if (!aktif) return;
+    const i = sira.indexOf(aktif.dataset.tab) + (dx < 0 ? 1 : -1);
+    if (i >= 0 && i < sira.length) { sekmeyeGit(sira[i]); titret(15); }
+  }, { passive: true });
+})();
+
 // ===================== BUGÜN PANELİ =====================
 function gununDersi() {
   const dersler = tumDersler();
