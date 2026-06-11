@@ -1757,6 +1757,91 @@ $("#cevAnalizBtn").onclick = async () => {
   }
 };
 
+// ===================== 🎙️ CANLI TERCÜMAN =====================
+// Hız için MyMemory yerine gpt-4o-mini: konuşma bitince çeviri ~2-3 sn'de gelir
+async function hizliCevir(metin, hedefAr) {
+  const anaDil = S.dil === "en" ? "English" : "Turkish";
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: 200,
+      messages: [
+        { role: "system", content: hedefAr
+          ? "Translate the user's message into natural spoken Egyptian Arabic. Output ONLY the Arabic translation in Arabic script."
+          : `Translate the user's Egyptian Arabic message into natural ${anaDil}. Output ONLY the ${anaDil} translation.` },
+        { role: "user", content: metin }
+      ]
+    })
+  });
+  if (!res.ok) throw new Error("cevir " + res.status);
+  const data = await res.json();
+  return ((data.choices && data.choices[0].message.content) || "").trim();
+}
+
+function canliBalon(taraf, ustMetin, altMetin) {
+  const kap = $("#canliLog");
+  const div = document.createElement("div");
+  div.className = "diyalog-balon " + (taraf === "o" ? "app" : "sen");
+  div.innerHTML = `
+    <div class="balon">
+      <div class="kisi">${taraf === "o" ? t("canli_o") : t("canli_sen")}</div>
+      <div class="okunus" style="font-size:1.1rem">${ustMetin}</div>
+      ${altMetin ? `<div class="anlam">${altMetin}</div>` : ""}
+    </div>`;
+  kap.prepend(div); // en yenisi üstte: takside ekrana bakarken kaydırma gerekmesin
+  return div;
+}
+
+$("#canliBtn").onclick = () => {
+  const alan = $("#canliAlani");
+  alan.classList.toggle("hidden");
+  if (!alan.classList.contains("hidden") && !S.oaiKey) {
+    $("#canliDurum").innerHTML = `<div class="telaffuz-sonuc orta">${t("canli_anahtar")}</div>`;
+  }
+};
+
+function canliTur(taraf) {
+  const btn = taraf === "o" ? $("#canliOnlar") : $("#canliBen");
+  if (btn._durdur) { btn._durdur(); return; }
+  if (!S.oaiKey) {
+    $("#canliDurum").innerHTML = `<div class="telaffuz-sonuc orta">${t("canli_anahtar")}</div>`;
+    return;
+  }
+  btn.classList.add("dinliyor");
+  btn._durdur = dinle({
+    dil: taraf === "o" ? "ar-EG" : kaynakKonusmaDili(),
+    durumEl: $("#canliDurum"),
+    sonuc: async (alternatifler) => {
+      const soylenen = alternatifler[0];
+      $("#canliDurum").innerHTML = `<div class="dinleme-durum">${t("cevriliyor")}</div>`;
+      try {
+        if (taraf === "o") {
+          // Arapça → ana dil: çeviriyi büyük göster + sesli oku
+          const ceviri = await hizliCevir(soylenen, false);
+          $("#canliDurum").innerHTML = "";
+          canliBalon("o", ceviri, arapcaOkunus(soylenen));
+          anadilSeslendir(ceviri);
+        } else {
+          // Ana dil → Arapça: okunuşu göster + karşı tarafa Arapça sesli söyle
+          const ar = await hizliCevir(soylenen, true);
+          $("#canliDurum").innerHTML = "";
+          canliBalon("sen", arapcaOkunus(ar) || ar, soylenen);
+          seslendir(ar);
+        }
+        S.stats.ceviri++; kaydet();
+      } catch (e) {
+        $("#canliDurum").innerHTML = `<div class="telaffuz-sonuc kotu">${t("cev_hata")}</div>`;
+      }
+    },
+    bitti: () => { btn._durdur = null; btn.classList.remove("dinliyor"); }
+  });
+}
+$("#canliOnlar").onclick = () => canliTur("o");
+$("#canliBen").onclick = () => canliTur("ben");
+
 // ===================== CEP REHBERİ =====================
 function rehberiCiz() {
   $("#rehberKategoriler").innerHTML = CEP_REHBERI.map((kat, ki) => `
