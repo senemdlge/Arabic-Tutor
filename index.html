@@ -103,6 +103,16 @@
   <!-- ÇEVİRMEN -->
   <section id="panel-cevirmen" class="panel">
     <h2 data-i18n="cevirmen">🌐 Çevirmen</h2>
+    <button class="btn primary" id="canliBtn" style="width:100%;margin-bottom:10px" data-i18n="canli">🎙️ Canlı Tercüman</button>
+    <div id="canliAlani" class="hidden">
+      <p class="ipucu" data-i18n="canli_ipucu">Takside, toplantıda: karşı taraf konuşsun → sana çevirir; sen konuş → ona Arapça söyler.</p>
+      <div class="canli-btnler">
+        <button class="btn ses" id="canliOnlar" data-i18n="canli_onlar">🗣️ O Konuşuyor (Arapça)</button>
+        <button class="btn mic" id="canliBen" data-i18n="canli_ben">🎤 Ben Konuşuyorum</button>
+      </div>
+      <div id="canliDurum"></div>
+      <div id="canliLog"></div>
+    </div>
     <p class="ipucu" data-i18n="cevirmen_ipucu">Cümleni yaz ya da söyle — çevirir, okunuşunu yazar, sesli okur.</p>
     <div class="cevirmen-yon">
       <button class="btn yon active" id="yonTrAr" data-i18n="yon_kaynak_ar">Türkçe → Arapça</button>
