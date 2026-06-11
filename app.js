@@ -116,8 +116,16 @@ function hedefTamamla(id) {
     konfetiAt();
   }
   kaydet();
-  if ($("#panel-bugun").classList.contains("active")) bugunuCiz();
+  hedefDurumuGuncelle();
   ustBilgiGuncelle();
+}
+
+// Bugün panelinde yalnızca hedef listesini tazele — kelime kartlarındaki
+// telaffuz sonuçlarını silmemek için panelin tamamı yeniden çizilmez
+function hedefDurumuGuncelle() {
+  if (!$("#panel-bugun").classList.contains("active")) return;
+  hedefListesiCiz();
+  $("#gunTamamMsg").classList.toggle("hidden", !S.gunlukHedef.tamamlandi);
 }
 
 // ===================== YARDIMCILAR =====================
@@ -208,21 +216,8 @@ async function oaiSesUrl(metin, yonerge) {
 }
 
 function sesleriYukle() {
+  // Yalnızca anahtarsız yedek mod için: en iyi Arapça tarayıcı sesi otomatik seçilir
   sesler = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().startsWith("ar"));
-  const sel = $("#ayarSes");
-  if (!sel) return;
-  sel.innerHTML = "";
-  if (!sesler.length) {
-    sel.innerHTML = `<option>${t("ses_bulunamadi")}</option>`;
-    return;
-  }
-  for (const v of sesler) {
-    const o = document.createElement("option");
-    o.value = v.voiceURI;
-    o.textContent = `${v.name} (${v.lang})`;
-    if (v.voiceURI === S.sesURI) o.selected = true;
-    sel.appendChild(o);
-  }
 }
 speechSynthesis.onvoiceschanged = sesleriYukle;
 
@@ -273,11 +268,10 @@ async function seslendir(arapca) {
       oaiPlayer.src = url;
       oaiPlayer.playbackRate = Math.min(1, S.hiz + 0.2);
       await oaiPlayer.play();
-      return;
     } catch (e) {
-      // Yalnızca API hatasında bilgilendir; çalma engellenirse sessizce tarayıcıya düş
       if (String(e && e.message).startsWith("TTS")) toast(t("oai_hata"), 3000);
     }
+    return; // anahtar varken asla tarayıcı sesine düşme — ton hep aynı kalsın
   }
   tarayiciSeslendir(arapca);
 }
@@ -295,8 +289,8 @@ function seslendirAsync(arapca) {
         oaiPlayer.onended = resolve;
         oaiPlayer.onpause = resolve; // elle durdurulursa da ilerle
         await oaiPlayer.play();
-        return;
-      } catch (e) { /* tarayıcıya düş */ }
+      } catch (e) { resolve(); }
+      return; // anahtar varken tarayıcı sesi kullanılmaz
     }
     const u = new SpeechSynthesisUtterance(arapca);
     u.lang = "ar-EG";
@@ -322,8 +316,10 @@ async function anadilSeslendir(metin) {
       oaiPlayer.src = url;
       oaiPlayer.playbackRate = 1;
       await oaiPlayer.play();
-      return;
-    } catch (e) { /* tarayıcıya düş */ }
+    } catch (e) {
+      if (String(e && e.message).startsWith("TTS")) toast(t("oai_hata"), 3000);
+    }
+    return; // anahtar varken tarayıcı sesi kullanılmaz
   }
   const u = new SpeechSynthesisUtterance(metin);
   u.lang = S.dil === "en" ? "en-US" : "tr-TR";
@@ -604,6 +600,25 @@ function gununDersi() {
   return dersler.find(d => !S.bitenDersler[d.id]) || dersler[dersler.length - 1];
 }
 
+function hedefListesiCiz() {
+  const h = S.gunlukHedef;
+  const durumlar = { ders: h.ders, quiz: h.quiz, konusma: h.konusma >= 3, dinleme: h.dinleme >= 10 };
+  const ilerlemeYazi = { konusma: `${Math.min(h.konusma, 3)}/3`, dinleme: `${Math.min(h.dinleme, 10)}/10` };
+  $("#hedefListesi").innerHTML = GUNLUK_HEDEFLER.map(g => `
+    <li class="${durumlar[g.id] ? "tamam" : ""}" data-hedef="${g.id}" style="cursor:pointer">
+      <span>${durumlar[g.id] ? "✅" : "⬜"} ${cAl(g.baslik)} ${ilerlemeYazi[g.id] ? `<small>(${ilerlemeYazi[g.id]})</small>` : ""} <span style="opacity:.45">›</span></span>
+      <span class="xp">+${g.xp} XP</span>
+    </li>`).join("");
+  $("#hedefListesi").querySelectorAll("[data-hedef]").forEach(li => {
+    li.onclick = () => {
+      const id = li.dataset.hedef;
+      if (id === "ders" || id === "dinleme") { dersAc(gununDersi().id); sekmeyeGit("ders"); }
+      if (id === "quiz") sekmeyeGit("pratik");
+      if (id === "konusma") sekmeyeGit("konusma");
+    };
+  });
+}
+
 function bugunuCiz() {
   gunlukHedefHazirla();
   const saat = new Date().getHours();
@@ -633,25 +648,8 @@ function bugunuCiz() {
     <button class="btn primary" id="derseGitBtn" style="margin-top:8px">${bitti ? t("tekrar_et") : t("derse_basla")} →</button>`;
   $("#derseGitBtn").onclick = () => { dersAc(ders.id); sekmeyeGit("ders"); };
 
-  const h = S.gunlukHedef;
-  const durumlar = { ders: h.ders, quiz: h.quiz, konusma: h.konusma >= 3, dinleme: h.dinleme >= 10 };
-  const ilerlemeYazi = { konusma: `${Math.min(h.konusma, 3)}/3`, dinleme: `${Math.min(h.dinleme, 10)}/10` };
-  $("#hedefListesi").innerHTML = GUNLUK_HEDEFLER.map(g => `
-    <li class="${durumlar[g.id] ? "tamam" : ""}" data-hedef="${g.id}" style="cursor:pointer">
-      <span>${durumlar[g.id] ? "✅" : "⬜"} ${cAl(g.baslik)} ${ilerlemeYazi[g.id] ? `<small>(${ilerlemeYazi[g.id]})</small>` : ""} <span style="opacity:.45">›</span></span>
-      <span class="xp">+${g.xp} XP</span>
-    </li>`).join("");
-  // Hedefe dokununca ilgili bölüme git
-  $("#hedefListesi").querySelectorAll("[data-hedef]").forEach(li => {
-    li.onclick = () => {
-      const id = li.dataset.hedef;
-      if (id === "ders" || id === "dinleme") { dersAc(gununDersi().id); sekmeyeGit("ders"); }
-      if (id === "quiz") sekmeyeGit("pratik");
-      if (id === "konusma") sekmeyeGit("konusma");
-    };
-  });
-
-  $("#gunTamamMsg").classList.toggle("hidden", !h.tamamlandi);
+  hedefListesiCiz();
+  $("#gunTamamMsg").classList.toggle("hidden", !S.gunlukHedef.tamamlandi);
 
   const hepsi = tumDersler().flatMap(d => d.items);
   const k = hepsi[gunNo() % hepsi.length];
@@ -784,10 +782,10 @@ async function aiAlternatifler(item) {
   return liste;
 }
 
-function alternatifleriGoster(alan, liste) {
+function alternatifleriGoster(alan, liste, baslik) {
   alan.innerHTML = `
     <div class="telaffuz-sonuc iyi">
-      <b>${t("alt_baslik")}</b>
+      <b>${baslik || t("alt_baslik")}</b>
       ${liste.map((a, i) => `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px">
           <span><span class="okunus" style="font-size:1rem">${a.tr}</span><br>
@@ -1225,6 +1223,7 @@ function aiBalonEkle(rol, { ar, tr, anlam }) {
   if (ar) div.querySelector(".balon").onclick = () => seslendir(ar);
   kap.appendChild(div);
   div.scrollIntoView({ behavior: "smooth", block: "end" });
+  return div;
 }
 
 async function aiGonderMesaj(mesaj) {
@@ -1233,12 +1232,12 @@ async function aiGonderMesaj(mesaj) {
     $("#aiDurum").innerHTML = `<div class="telaffuz-sonuc orta">${t("ai_anahtar_gerek")}</div>`;
     return;
   }
-  aiBalonEkle("sen", { tr: "", anlam: mesaj, ar: "" });
+  const senBalon = aiBalonEkle("sen", { tr: "", anlam: mesaj, ar: "" });
   $("#aiGirdi").value = "";
   $("#aiDurum").innerHTML = `<div class="dinleme-durum">${t("ai_dusunuyor")}</div>`;
   aiGecmis.push({ role: "user", content: mesaj });
   const anaDil = S.dil === "en" ? "English" : "Turkish";
-  const sistem = `You are a warm, encouraging Egyptian Arabic tutor chatting with a beginner whose native language is ${anaDil}. Carry a natural conversation and ask simple follow-up questions. ALWAYS reply with 1-2 SHORT Egyptian Arabic sentences suitable for a beginner. Reply STRICTLY in this exact format on a single line:\nARABIC_SCRIPT ||| LATIN_TRANSLITERATION (use ${anaDil === "Turkish" ? "Turkish phonetics, e.g. ş, ğ, izzeyyek" : "English phonetics, e.g. sh, kh, izzayyak"}) ||| ${anaDil} translation (if the user made an Arabic mistake, add a very brief correction here in ${anaDil})\nThe user may write in ${anaDil}, in transliterated Arabic, or in Arabic script.`;
+  const sistem = `You are a warm, encouraging Egyptian Arabic tutor chatting with a beginner whose native language is ${anaDil}. Carry a natural conversation and ask simple follow-up questions. ALWAYS reply with 1-2 SHORT Egyptian Arabic sentences suitable for a beginner. Reply STRICTLY in this exact two-line format:\nYOU_SAID: ${anaDil} translation of what the user just said (if they spoke Arabic or transliterated Arabic; if they wrote in ${anaDil}, repeat it briefly)\nREPLY: ARABIC_SCRIPT ||| LATIN_TRANSLITERATION (use ${anaDil === "Turkish" ? "Turkish phonetics, e.g. ş, ğ, izzeyyek" : "English phonetics, e.g. sh, kh, izzayyak"}) ||| ${anaDil} translation (if the user made an Arabic mistake, add a very brief correction here in ${anaDil})\nThe user may write in ${anaDil}, in transliterated Arabic, or in Arabic script.`;
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -1254,10 +1253,18 @@ async function aiGonderMesaj(mesaj) {
     const data = await res.json();
     const icerik = (data.choices && data.choices[0].message.content || "").trim();
     aiGecmis.push({ role: "assistant", content: icerik });
-    const parcalar = icerik.split("|||").map(s => s.trim());
+    // Kullanıcının söylediğinin çevirisini balonuna ekle
+    const senCeviri = (icerik.match(/YOU_SAID:\s*(.+)/i) || [])[1];
+    if (senCeviri && senBalon) {
+      const anlamEl = senBalon.querySelector(".anlam");
+      if (anlamEl && senCeviri.trim().toLowerCase() !== mesaj.trim().toLowerCase())
+        anlamEl.innerHTML = `${mesaj}<br><i style="opacity:.7">= ${senCeviri.trim()}</i>`;
+    }
+    const cevapSatiri = (icerik.match(/REPLY:\s*([\s\S]+)/i) || [])[1] || icerik;
+    const parcalar = cevapSatiri.split("|||").map(s => s.trim());
     const cevap = parcalar.length >= 3
       ? { ar: parcalar[0], tr: parcalar[1], anlam: parcalar[2] }
-      : { ar: icerik, tr: arapcaOkunus(icerik), anlam: "" };
+      : { ar: cevapSatiri.trim(), tr: arapcaOkunus(cevapSatiri), anlam: "" };
     $("#aiDurum").innerHTML = "";
     aiBalonEkle("app", cevap);
     if (cevap.ar) seslendir(cevap.ar);
@@ -1577,6 +1584,7 @@ async function ceviriYap() {
     S.stats.ceviri++; kaydet();
     $("#ceviriSonuc").classList.remove("hidden");
     $("#ceviriTelaffuz").innerHTML = "";
+    $("#ceviriEkstra").innerHTML = "";
     if (hedefDil === "ar") {
       $("#ceviriMetin").textContent = arapcaOkunus(ceviri) || ceviri;
       $("#ceviriOkunus").textContent = t("okunus_not");
@@ -1620,25 +1628,95 @@ $("#ceviriTekrarla").onclick = () => {
   });
 };
 
+// 🔍 Cümleyi kelime kelime çözümle
+const analizOnbellek = new Map();
+async function kelimeAnalizi(ar) {
+  if (analizOnbellek.has(ar)) return analizOnbellek.get(ar);
+  const anaDil = S.dil === "en" ? "English" : "Turkish";
+  const fonetik = anaDil === "Turkish" ? "Turkish phonetics (ş, ğ, ı)" : "English phonetics (sh, kh)";
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: 350,
+      messages: [
+        { role: "system", content: "You are an Egyptian Arabic teacher. Output only the requested lines, nothing else." },
+        { role: "user", content: `Break down this Egyptian Arabic sentence word by word, in order: "${ar}". For EACH word output one line, format exactly:\nARABIC_WORD ||| transliteration in ${fonetik} ||| ${anaDil} meaning of that single word` }
+      ]
+    })
+  });
+  if (!res.ok) throw new Error("analiz " + res.status);
+  const data = await res.json();
+  const liste = aiSatirlariCoz((data.choices && data.choices[0].message.content) || "");
+  if (!liste.length) throw new Error("bos");
+  analizOnbellek.set(ar, liste);
+  return liste;
+}
+
+$("#cevAltBtn").onclick = async () => {
+  if (!sonCeviri || sonCeviri.dil !== "ar") { toast(t("cev_yon_uyari")); return; }
+  const alan = $("#ceviriEkstra");
+  if (!S.oaiKey) { alan.innerHTML = `<div class="telaffuz-sonuc orta">${t("alt_anahtar")}</div>`; return; }
+  alan.innerHTML = `<div class="dinleme-durum">${t("yukleniyor")}</div>`;
+  try {
+    const item = { ar: sonCeviri.metin, tr: arapcaOkunus(sonCeviri.metin), anlam: $("#ceviriGirdi").value.trim() };
+    alternatifleriGoster(alan, await aiAlternatifler(item));
+  } catch (e) {
+    alan.innerHTML = `<div class="telaffuz-sonuc kotu">${t("alt_hata")}</div>`;
+  }
+};
+
+$("#cevAnalizBtn").onclick = async () => {
+  if (!sonCeviri || sonCeviri.dil !== "ar") { toast(t("cev_yon_uyari")); return; }
+  const alan = $("#ceviriEkstra");
+  if (!S.oaiKey) { alan.innerHTML = `<div class="telaffuz-sonuc orta">${t("alt_anahtar")}</div>`; return; }
+  alan.innerHTML = `<div class="dinleme-durum">${t("yukleniyor")}</div>`;
+  try {
+    alternatifleriGoster(alan, await kelimeAnalizi(sonCeviri.metin), t("analiz_baslik"));
+  } catch (e) {
+    alan.innerHTML = `<div class="telaffuz-sonuc kotu">${t("analiz_hata")}</div>`;
+  }
+};
+
 // ===================== CEP REHBERİ =====================
 function rehberiCiz() {
   $("#rehberKategoriler").innerHTML = CEP_REHBERI.map((kat, ki) => `
     <div class="rehber-kategori">
       <h3>${cAl(kat.kategori)}</h3>
       ${kat.ifadeler.map((f, i) => `
-        <button class="rehber-ifade" data-kat="${ki}" data-i="${i}">
-          <span>
-            <span class="okunus" style="font-size:1rem">${okunusGoster(f.tr)}</span><br>
-            <span class="anlam" style="font-size:.85rem">${cAl(f.anlam)}</span>
-          </span>
-          <span class="hoparlor">📢</span>
-        </button>`).join("")}
+        <div class="rehber-satir">
+          <button class="rehber-ifade" data-kat="${ki}" data-i="${i}">
+            <span>
+              <span class="okunus" style="font-size:1rem">${okunusGoster(f.tr)}</span><br>
+              <span class="anlam" style="font-size:.85rem">${cAl(f.anlam)}</span>
+            </span>
+            <span class="hoparlor">📢</span>
+          </button>
+          <button class="btn rehber-alt" data-kat="${ki}" data-i="${i}" title="${t("alt_baslik")}">💡</button>
+        </div>
+        <div class="rehber-ekstra" data-kat="${ki}" data-i="${i}"></div>`).join("")}
     </div>`).join("");
   $$(".rehber-ifade").forEach(btn => {
     btn.onclick = () => {
       const f = CEP_REHBERI[+btn.dataset.kat].ifadeler[+btn.dataset.i];
       seslendir(f.ar);
       titret(20);
+    };
+  });
+  $$(".rehber-alt").forEach(btn => {
+    btn.onclick = async () => {
+      const f = CEP_REHBERI[+btn.dataset.kat].ifadeler[+btn.dataset.i];
+      const alan = $(`.rehber-ekstra[data-kat="${btn.dataset.kat}"][data-i="${btn.dataset.i}"]`);
+      if (alan.innerHTML) { alan.innerHTML = ""; return; } // ikinci dokunuş: kapat
+      if (!S.oaiKey) { alan.innerHTML = `<div class="telaffuz-sonuc orta">${t("alt_anahtar")}</div>`; return; }
+      alan.innerHTML = `<div class="dinleme-durum">${t("yukleniyor")}</div>`;
+      try {
+        alternatifleriGoster(alan, await aiAlternatifler(f));
+      } catch (e) {
+        alan.innerHTML = `<div class="telaffuz-sonuc kotu">${t("alt_hata")}</div>`;
+      }
     };
   });
 }
@@ -1748,14 +1826,12 @@ $("#settingsBtn").onclick = () => {
   $("#ayarHiz").value = S.hiz;
   $("#ayarDil").value = S.dil;
   $("#ayarOaiKey").value = S.oaiKey;
-  sesleriYukle();
   ayarDlg.showModal();
 };
 $("#ayarKapat").onclick = () => ayarDlg.close();
 $("#ayarArapca").onchange = (e) => { S.arapcaGoster = e.target.checked; kaydet(); gorunumUygula(); };
 $("#ayarKaranlik").onchange = (e) => { S.karanlik = e.target.checked; kaydet(); gorunumUygula(); };
 $("#ayarHiz").onchange = (e) => { S.hiz = parseFloat(e.target.value); kaydet(); };
-$("#ayarSes").onchange = (e) => { S.sesURI = e.target.value; kaydet(); };
 $("#ayarDil").onchange = (e) => { dilDegistir(e.target.value); };
 $("#ayarOaiKey").onchange = (e) => { S.oaiKey = e.target.value.trim(); sesOnbellek.clear(); kaydet(); };
 $("#yedekAl").onclick = async () => {
