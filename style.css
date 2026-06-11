@@ -533,3 +533,22 @@ dialog::backdrop { background: rgba(10, 20, 16, .5); backdrop-filter: blur(4px);
   #panel-konusma .mod-izgara { grid-template-columns: 1fr 1fr; }
   .esl-izgara { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ---------- Üst bar istatistik grubu ---------- */
+#statOzet {
+  background: rgba(255,255,255,.28); border: none; border-radius: 999px;
+  padding: 4px 10px; font-size: .78rem; font-weight: 800; color: #fff;
+  cursor: pointer; font-family: inherit; flex-shrink: 0; white-space: nowrap;
+}
+.stat-popover {
+  position: absolute; right: 12px; top: calc(100% + 8px);
+  background: var(--kart); color: var(--metin);
+  border: 1px solid var(--cizgi); border-radius: 16px;
+  box-shadow: var(--golge-buyuk); padding: 6px 14px; min-width: 200px; z-index: 40;
+  animation: fadeIn .2s;
+}
+.stat-satir {
+  display: flex; justify-content: space-between; gap: 14px;
+  padding: 8px 0; border-bottom: 1px dashed var(--cizgi); font-size: .9rem;
+}
+.stat-satir:last-child { border-bottom: none; }
