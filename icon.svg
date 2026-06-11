@@ -1,12 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#222c47"/>
-      <stop offset="1" stop-color="#3a477a"/>
+    <linearGradient id="gok" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a213c"/>
+      <stop offset="1" stop-color="#3e4a82"/>
     </linearGradient>
+    <mask id="hilal">
+      <rect width="512" height="512" fill="#fff"/>
+      <circle cx="370" cy="114" r="94" fill="#000"/>
+    </mask>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#g)"/>
-  <circle cx="256" cy="150" r="58" fill="#e3c272"/>
-  <path d="M96 360 Q176 260 256 330 Q336 260 416 360 L416 416 L96 416 Z" fill="#ebe2cd"/>
-  <text x="256" y="305" font-size="150" text-anchor="middle" font-family="sans-serif">🗣️</text>
+  <rect width="512" height="512" rx="112" fill="url(#gok)"/>
+  <!-- yıldızlar -->
+  <circle cx="80" cy="74" r="5" fill="#e1d7be"/>
+  <circle cx="148" cy="40" r="3.5" fill="#e1d7be"/>
+  <circle cx="245" cy="85" r="4" fill="#e1d7be"/>
+  <circle cx="57" cy="176" r="3.5" fill="#e1d7be"/>
+  <circle cx="432" cy="273" r="4" fill="#e1d7be"/>
+  <circle cx="455" cy="62" r="4.5" fill="#e1d7be"/>
+  <circle cx="335" cy="34" r="3" fill="#e1d7be"/>
+  <circle cx="125" cy="250" r="3.5" fill="#e1d7be"/>
+  <!-- parıltı (elmas) -->
+  <path d="M165 125 l13 -26 13 26 -13 26 Z" fill="#f0d796"/>
+  <!-- altın hilal -->
+  <circle cx="330" cy="148" r="108" fill="#e3c272" mask="url(#hilal)"/>
+  <!-- kum tepeleri -->
+  <path d="M0 322 Q128 270 256 318 Q384 366 512 300 L512 512 L0 512 Z" fill="#d6c8a8"/>
+  <path d="M0 396 Q150 340 300 392 Q420 432 512 380 L512 512 L0 512 Z" fill="#ebe2cd"/>
 </svg>
