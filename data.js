@@ -18,7 +18,7 @@ const CURRICULUM = [
           { ar: "إن شاء الله", tr: "inşaallah", anlam: "İnşallah" },
           { ar: "الحمد لله", tr: "il-hamdu lilleh", anlam: "Çok şükür" },
           { ar: "يا حبيبي", tr: "ye habiibi", anlam: "Canım / dostum (habibi!)" },
-          { ar: "كده", tr: "kide", anlam: "Böyle / öyle / işte" },
+          { ar: "كده", tr: "kida", anlam: "Böyle / öyle / işte" },
           { ar: "بس", tr: "bess", anlam: "Sadece / ama / yeter" },
           { ar: "شوية", tr: "şuvayya", anlam: "Biraz / azıcık" }
         ]
@@ -36,7 +36,7 @@ const CURRICULUM = [
           { ar: "إزيك؟", tr: "izzeyyek?", anlam: "Nasılsın? (erkeğe denir)" },
           { ar: "إزيك؟", tr: "izzeyyik?", anlam: "Nasılsın? (kadına denir)" },
           { ar: "كويس", tr: "kuveyyis", anlam: "İyiyim (erkek söyler)" },
-          { ar: "كويسة", tr: "kuveyyise", anlam: "İyiyim (kadın söyler)" },
+          { ar: "كويسة", tr: "kuveyyisa", anlam: "İyiyim (kadın söyler)" },
           { ar: "تمام", tr: "temeem", anlam: "İyi / tamam / harika" }
         ]
       },
@@ -53,8 +53,8 @@ const CURRICULUM = [
           { ar: "من فضلك", tr: "min fadlek", anlam: "Lütfen (erkeğe denir)" },
           { ar: "لو سمحت", tr: "lev semaht", anlam: "Affedersiniz / lütfen" },
           { ar: "آسف", tr: "eesif", anlam: "Üzgünüm (erkek söyler)" },
-          { ar: "آسفة", tr: "eesfe", anlam: "Üzgünüm (kadın söyler)" },
-          { ar: "مفيش مشكلة", tr: "mefiiş muşkile", anlam: "Sorun değil" }
+          { ar: "آسفة", tr: "eesfa", anlam: "Üzgünüm (kadın söyler)" },
+          { ar: "مفيش مشكلة", tr: "mefiiş muşkila", anlam: "Sorun değil" }
         ]
       },
       {
@@ -65,7 +65,7 @@ const CURRICULUM = [
           { ar: "العفو", tr: "il-afv", anlam: "Rica ederim (en yaygın)" },
           { ar: "عفواً", tr: "afvan", anlam: "Rica ederim / pardon" },
           { ar: "على الرحب والسعة", tr: "ala'r-rahb vis-sea", anlam: "Rica ederim, baş üstüne (çok kibar)" },
-          { ar: "أي خدمة", tr: "ayyi hidme", anlam: "Rica ederim / her zaman hizmetindeyim" },
+          { ar: "أي خدمة", tr: "ayyi hidma", anlam: "Rica ederim / her zaman hizmetindeyim" },
           { ar: "ولا يهمك", tr: "vele yhimmek", anlam: "Rica ederim / takma kafana" },
           { ar: "ده واجبي", tr: "de vegbi", anlam: "Rica ederim, bu benim görevim" },
           { ar: "اتفضل", tr: "itfaddal", anlam: "Buyur (erkeğe denir)" },
@@ -86,7 +86,7 @@ const CURRICULUM = [
           { ar: "اسمك إيه؟", tr: "ismek êh?", anlam: "Adın ne? (erkeğe sorulur)" },
           { ar: "أنا من تركيا", tr: "ene min turkiye", anlam: "Ben Türkiye'denim" },
           { ar: "أنا تركي", tr: "ene turki", anlam: "Ben Türküm (erkek söyler)" },
-          { ar: "أنا تركية", tr: "ene turkiyye", anlam: "Ben Türküm (kadın söyler)" },
+          { ar: "أنا تركية", tr: "ene turkiyya", anlam: "Ben Türküm (kadın söyler)" },
           { ar: "إنت منين؟", tr: "inte mineyn?", anlam: "Nerelisin?" },
           { ar: "تشرفنا", tr: "teşarrafne", anlam: "Memnun oldum" }
         ]
@@ -102,7 +102,7 @@ const CURRICULUM = [
           { ar: "يمكن", tr: "yimkin", anlam: "Belki" },
           { ar: "ممكن", tr: "mumkin", anlam: "Olabilir / mümkün" },
           { ar: "مش عارف", tr: "miş aarif", anlam: "Bilmiyorum (erkek söyler)" },
-          { ar: "مش عارفة", tr: "miş aarfe", anlam: "Bilmiyorum (kadın söyler)" },
+          { ar: "مش عارفة", tr: "miş aarfa", anlam: "Bilmiyorum (kadın söyler)" },
           { ar: "والله؟", tr: "vallaahi?", anlam: "Gerçekten mi?" },
           { ar: "بجد؟", tr: "bigedd?", anlam: "Ciddi misin?" },
           { ar: "طب", tr: "tab", anlam: "Peki / o zaman" }
@@ -115,12 +115,12 @@ const CURRICULUM = [
         items: [
           { ar: "واحد", tr: "vaahid", anlam: "Bir (1)" },
           { ar: "اتنين", tr: "itneyn", anlam: "İki (2)" },
-          { ar: "تلاتة", tr: "teleete", anlam: "Üç (3)" },
+          { ar: "تلاتة", tr: "teleeta", anlam: "Üç (3)" },
           { ar: "أربعة", tr: "arbaa", anlam: "Dört (4)" },
-          { ar: "خمسة", tr: "hamse", anlam: "Beş (5)" },
-          { ar: "ستة", tr: "sitte", anlam: "Altı (6)" },
+          { ar: "خمسة", tr: "hamsa", anlam: "Beş (5)" },
+          { ar: "ستة", tr: "sitta", anlam: "Altı (6)" },
           { ar: "سبعة", tr: "seb'a", anlam: "Yedi (7)" },
-          { ar: "تمانية", tr: "temenye", anlam: "Sekiz (8)" },
+          { ar: "تمانية", tr: "temenya", anlam: "Sekiz (8)" },
           { ar: "تسعة", tr: "tis'a", anlam: "Dokuz (9)" },
           { ar: "عشرة", tr: "aşara", anlam: "On (10)" }
         ]
@@ -138,7 +138,7 @@ const CURRICULUM = [
         items: [
           { ar: "إيه؟", tr: "êh?", anlam: "Ne?" },
           { ar: "فين؟", tr: "feyn?", anlam: "Nerede?" },
-          { ar: "إمتى؟", tr: "imte?", anlam: "Ne zaman?" },
+          { ar: "إمتى؟", tr: "imta?", anlam: "Ne zaman?" },
           { ar: "ليه؟", tr: "lêh?", anlam: "Neden?" },
           { ar: "إزاي؟", tr: "izzey?", anlam: "Nasıl?" },
           { ar: "مين؟", tr: "miin?", anlam: "Kim?" },
@@ -156,10 +156,10 @@ const CURRICULUM = [
           { ar: "أكل", tr: "ekl", anlam: "Yemek" },
           { ar: "مية", tr: "mayya", anlam: "Su" },
           { ar: "شاي", tr: "şeey", anlam: "Çay" },
-          { ar: "قهوة", tr: "ahve", anlam: "Kahve" },
+          { ar: "قهوة", tr: "ahva", anlam: "Kahve" },
           { ar: "عيش", tr: "eyş", anlam: "Ekmek" },
           { ar: "فراخ", tr: "firaah", anlam: "Tavuk" },
-          { ar: "لحمة", tr: "lahme", anlam: "Et" },
+          { ar: "لحمة", tr: "lahma", anlam: "Et" },
           { ar: "سمك", tr: "semek", anlam: "Balık" },
           { ar: "أنا جعان", tr: "ene gaaeen", anlam: "Açım (erkek söyler)" },
           { ar: "أنا عطشان", tr: "ene atşaan", anlam: "Susadım (erkek söyler)" }
@@ -172,7 +172,7 @@ const CURRICULUM = [
         items: [
           { ar: "المنيو لو سمحت", tr: "il-menyu lev semaht", anlam: "Menü lütfen" },
           { ar: "عايز", tr: "aayiz", anlam: "İstiyorum (erkek söyler)" },
-          { ar: "عايزة", tr: "ayze", anlam: "İstiyorum (kadın söyler)" },
+          { ar: "عايزة", tr: "ayza", anlam: "İstiyorum (kadın söyler)" },
           { ar: "الحساب لو سمحت", tr: "il-hiseeb lev semaht", anlam: "Hesap lütfen" },
           { ar: "لذيذ", tr: "leziiz", anlam: "Lezzetli" },
           { ar: "حلو أوي", tr: "helv avi", anlam: "Çok güzel" },
@@ -196,7 +196,7 @@ const CURRICULUM = [
           { ar: "هاخد ده", tr: "haahod de", anlam: "Bunu alacağım" },
           { ar: "مش عايز حاجة", tr: "miş aayiz haage", anlam: "Bir şey istemiyorum" },
           { ar: "آخر كلام؟", tr: "eehir keleem?", anlam: "Son fiyat mı?" },
-          { ar: "كده كتير", tr: "kide kitiir", anlam: "Bu çok fazla" }
+          { ar: "كده كتير", tr: "kida kitiir", anlam: "Bu çok fazla" }
         ]
       },
       {
@@ -244,7 +244,7 @@ const CURRICULUM = [
         gun: 2,
         baslik: "Aile",
         items: [
-          { ar: "عيلة", tr: "êle", anlam: "Aile" },
+          { ar: "عيلة", tr: "êla", anlam: "Aile" },
           { ar: "أبويا", tr: "ebuuye", anlam: "Babam" },
           { ar: "أمي", tr: "ummi", anlam: "Annem" },
           { ar: "أخويا", tr: "ehuuye", anlam: "Erkek kardeşim" },
@@ -410,14 +410,14 @@ const CURRICULUM = [
         baslik: "İşte İlk Gün",
         items: [
           { ar: "أنا الموظف الجديد", tr: "ene il-muvazzaf ig-gediid", anlam: "Ben yeni çalışanım" },
-          { ar: "شركة", tr: "şirke", anlam: "Şirket" },
+          { ar: "شركة", tr: "şirka", anlam: "Şirket" },
           { ar: "مكتب", tr: "mekteb", anlam: "Ofis" },
           { ar: "مدير", tr: "mudiir", anlam: "Müdür" },
           { ar: "زميل", tr: "zemiil", anlam: "İş arkadaşı (erkek için)" },
-          { ar: "زميلة", tr: "zemiile", anlam: "İş arkadaşı (kadın için)" },
+          { ar: "زميلة", tr: "zemiila", anlam: "İş arkadaşı (kadın için)" },
           { ar: "شغل", tr: "şuğl", anlam: "İş" },
           { ar: "باشتغل مهندسة", tr: "beştağal muhendise", anlam: "Mühendis olarak çalışıyorum (kadın söyler)" },
-          { ar: "فرصة سعيدة", tr: "fursa saiide", anlam: "Tanıştığımıza memnun oldum" },
+          { ar: "فرصة سعيدة", tr: "fursa saiida", anlam: "Tanıştığımıza memnun oldum" },
           { ar: "أتمنى نشتغل سوا كويس", tr: "etmenne niştağal seve kuveyyis", anlam: "Umarım iyi çalışırız birlikte" }
         ]
       },
@@ -432,7 +432,7 @@ const CURRICULUM = [
           { ar: "الساعة عشرة الصبح", tr: "is-seea aşara is-subh", anlam: "Sabah saat onda" },
           { ar: "ميعاد", tr: "miaad", anlam: "Randevu" },
           { ar: "متأخر", tr: "mit'ahhar", anlam: "Geç kalmış" },
-          { ar: "آسفة على التأخير", tr: "eesfe alet-te'hiir", anlam: "Geciktiğim için üzgünüm" },
+          { ar: "آسفة على التأخير", tr: "eesfa alet-te'hiir", anlam: "Geciktiğim için üzgünüm" },
           { ar: "نبدأ؟", tr: "nibde'?", anlam: "Başlayalım mı?" },
           { ar: "عندي سؤال", tr: "andi su'eel", anlam: "Bir sorum var" },
           { ar: "اتفقنا", tr: "ittefa'ne", anlam: "Anlaştık" }
@@ -450,7 +450,7 @@ const CURRICULUM = [
           { ar: "محتاج وقت كمان", tr: "mihteeg va't kemeen", anlam: "Daha fazla zamana ihtiyacım var" },
           { ar: "مشروع", tr: "meşruu", anlam: "Proje" },
           { ar: "تقرير", tr: "ta'riir", anlam: "Rapor" },
-          { ar: "تمام كده؟", tr: "temeem kide?", anlam: "Böyle tamam mı?" },
+          { ar: "تمام كده؟", tr: "temeem kida?", anlam: "Böyle tamam mı?" },
           { ar: "شغل ممتاز", tr: "şuğl mumteez", anlam: "Mükemmel iş" },
           { ar: "استراحة", tr: "istiraaha", anlam: "Mola" }
         ]
@@ -462,13 +462,13 @@ const CURRICULUM = [
         items: [
           { ar: "ألو", tr: "alo", anlam: "Alo" },
           { ar: "مين معايا؟", tr: "miin maaye?", anlam: "Kiminle görüşüyorum?" },
-          { ar: "ثانية واحدة", tr: "senye vahde", anlam: "Bir saniye" },
+          { ar: "ثانية واحدة", tr: "senya vahda", anlam: "Bir saniye" },
           { ar: "هو مش موجود", tr: "huvve miş mevguud", anlam: "Kendisi yerinde yok" },
           { ar: "اتصل تاني بعدين", tr: "ittisil teeni baadeyn", anlam: "Sonra tekrar ara" },
           { ar: "هاتصل بحضرتك", tr: "hattisil bihadritek", anlam: "Sizi arayacağım (kibarca)" },
           { ar: "رقم تليفونك كام؟", tr: "ra'm tilifonek keem?", anlam: "Telefon numaran kaç?" },
-          { ar: "ممكن تبعت رسالة؟", tr: "mumkin tibat riseele?", anlam: "Mesaj gönderebilir misin?" },
-          { ar: "وصلت الرسالة", tr: "vislit ir-riseele", anlam: "Mesaj ulaştı" },
+          { ar: "ممكن تبعت رسالة؟", tr: "mumkin tibat riseela?", anlam: "Mesaj gönderebilir misin?" },
+          { ar: "وصلت الرسالة", tr: "vislit ir-riseela", anlam: "Mesaj ulaştı" },
           { ar: "شكراً على وقتك", tr: "şukran ale va'tek", anlam: "Zamanın için teşekkürler" }
         ]
       },
@@ -483,8 +483,8 @@ const CURRICULUM = [
           { ar: "من غير زحمة", tr: "min ğêr zahme", anlam: "Zahmet olmazsa" },
           { ar: "تحت أمرك", tr: "taht amrek", anlam: "Emrinizdeyim" },
           { ar: "مفيش مانع", tr: "mefiiş meenia", anlam: "Sakıncası yok" },
-          { ar: "إجازة", tr: "ageeze", anlam: "İzin / tatil" },
-          { ar: "عايزة إجازة بكرة", tr: "ayze ageeze bukra", anlam: "Yarın izin istiyorum (kadın söyler)" },
+          { ar: "إجازة", tr: "ageeza", anlam: "İzin / tatil" },
+          { ar: "عايزة إجازة بكرة", tr: "ayza ageeza bukra", anlam: "Yarın izin istiyorum (kadın söyler)" },
           { ar: "مرتب", tr: "murattab", anlam: "Maaş" },
           { ar: "ربنا يوفقك", tr: "rabbine yveffa'ek", anlam: "Allah başarı versin" }
         ]
@@ -539,10 +539,10 @@ const DIYALOGLAR = [
     seviye: "Kolay",
     adimlar: [
       { rol: "app", kisi: "Garson", ar: "أهلاً، تحب تشرب إيه؟", tr: "ehlen, tihibb tişrab êh?", anlam: "Merhaba, ne içmek istersin?" },
-      { rol: "sen", ar: "عايز قهوة لو سمحت", tr: "aayiz ahve lev semaht", anlam: "Kahve istiyorum lütfen" },
+      { rol: "sen", ar: "عايز قهوة لو سمحت", tr: "aayiz ahva lev semaht", anlam: "Kahve istiyorum lütfen" },
       { rol: "app", kisi: "Garson", ar: "بسكر ولا من غير سكر؟", tr: "bisukker velle min ğêr sukker?", anlam: "Şekerli mi şekersiz mi?" },
       { rol: "sen", ar: "من غير سكر", tr: "min ğêr sukker", anlam: "Şekersiz" },
-      { rol: "app", kisi: "Garson", ar: "حاضر، ثانية واحدة", tr: "haadir, senye vahde", anlam: "Tamam, bir saniye" },
+      { rol: "app", kisi: "Garson", ar: "حاضر، ثانية واحدة", tr: "haadir, senya vahda", anlam: "Tamam, bir saniye" },
       { rol: "sen", ar: "شكراً", tr: "şukran", anlam: "Teşekkürler" }
     ]
   },
@@ -568,7 +568,7 @@ const DIYALOGLAR = [
       { rol: "app", kisi: "İş arkadaşı", ar: "أهلاً وسهلاً! إنت الموظف الجديد؟", tr: "ehlen ve sehlen! inte il-muvazzaf ig-gediid?", anlam: "Hoş geldin! Yeni çalışan sen misin?" },
       { rol: "sen", ar: "أيوة، أنا من تركيا", tr: "eyve, ene min turkiye", anlam: "Evet, ben Türkiye'denim" },
       { rol: "app", kisi: "İş arkadaşı", ar: "تشرفنا! اسمك إيه؟", tr: "teşarrafne! ismek êh?", anlam: "Memnun oldum! Adın ne?" },
-      { rol: "sen", ar: "اسمي سنم، فرصة سعيدة", tr: "ismii Senem, fursa saiide", anlam: "Adım Senem, memnun oldum" },
+      { rol: "sen", ar: "اسمي سنم، فرصة سعيدة", tr: "ismii Senem, fursa saiida", anlam: "Adım Senem, memnun oldum" },
       { rol: "app", kisi: "İş arkadaşı", ar: "تحب تشرب شاي؟", tr: "tihibb tişrab şeey?", anlam: "Çay içmek ister misin?" },
       { rol: "sen", ar: "أيوة، شكراً", tr: "eyve, şukran", anlam: "Evet, teşekkürler" },
       { rol: "app", kisi: "İş arkadaşı", ar: "أتمنى نشتغل سوا كويس", tr: "etmenne niştağal seve kuveyyis", anlam: "Umarım birlikte iyi çalışırız" },
@@ -595,10 +595,10 @@ const DIYALOGLAR = [
     adimlar: [
       { rol: "app", kisi: "Kurye", ar: "ألو، أنا الطيار، مش لاقي العنوان", tr: "alo, ene it-tayyaar, miş leei il-unvaan", anlam: "Alo, ben kurye, adresi bulamıyorum" },
       { rol: "sen", ar: "إنت فين دلوقتي؟", tr: "inte feyn dilva'ti?", anlam: "Şu an neredesin?" },
-      { rol: "app", kisi: "Kurye", ar: "أنا قدام البوابة الرئيسية", tr: "ene uddeem il-bevveebe ir-ra'iisiyye", anlam: "Ana kapının önündeyim" },
+      { rol: "app", kisi: "Kurye", ar: "أنا قدام البوابة الرئيسية", tr: "ene uddeem il-bevveeba ir-ra'iisiyya", anlam: "Ana kapının önündeyim" },
       { rol: "sen", ar: "تمام، خش يمين وبعدين على طول", tr: "temeem, hoş yimiin ve baadeyn ale tuul", anlam: "Tamam, sağa gir sonra düz devam et" },
       { rol: "app", kisi: "Kurye", ar: "العمارة رقم كام؟", tr: "il-imaara ra'm keem?", anlam: "Bina numarası kaç?" },
-      { rol: "sen", ar: "عمارة خمسة، الدور التاني", tr: "imaara hamse, id-dôr it-teeni", anlam: "Beş numaralı bina, ikinci kat" },
+      { rol: "sen", ar: "عمارة خمسة، الدور التاني", tr: "imaara hamsa, id-dôr it-teeni", anlam: "Beş numaralı bina, ikinci kat" },
       { rol: "app", kisi: "Kurye", ar: "ماشي، جاي في دقيقتين", tr: "meeşi, gey fi di'i'teyn", anlam: "Tamam, iki dakikaya geliyorum" },
       { rol: "sen", ar: "تمام، مستنيك", tr: "temeem, mistanniik", anlam: "Tamam, seni bekliyorum" }
     ]
@@ -608,12 +608,12 @@ const DIYALOGLAR = [
     baslik: "💂 Güvenlik Kuryeyi İçeri Almıyor",
     seviye: "Orta",
     adimlar: [
-      { rol: "app", kisi: "Güvenlik", ar: "في مشكلة، الطيار مش هيخش من غير تصريح", tr: "fi muşkile, it-tayyaar miş hayhoş min ğêr tasriih", anlam: "Sorun var, kurye izinsiz giremez" },
+      { rol: "app", kisi: "Güvenlik", ar: "في مشكلة، الطيار مش هيخش من غير تصريح", tr: "fi muşkila, it-tayyaar miş hayhoş min ğêr tasriih", anlam: "Sorun var, kurye izinsiz giremez" },
       { rol: "sen", ar: "ليه؟ ده جايبلي أكل", tr: "lêh? de gayibli ekl", anlam: "Neden? Bana yemek getiriyor" },
-      { rol: "app", kisi: "Güvenlik", ar: "القواعد كده، لازم إذن", tr: "il-kaveeid kide, leezim izn", anlam: "Kurallar böyle, izin lazım" },
+      { rol: "app", kisi: "Güvenlik", ar: "القواعد كده، لازم إذن", tr: "il-kaveeid kida, leezim izn", anlam: "Kurallar böyle, izin lazım" },
       { rol: "sen", ar: "طب ممكن أنزل أستلم بنفسي؟", tr: "tab mumkin enzil estilim binefsi?", anlam: "Peki inip kendim teslim alabilir miyim?" },
       { rol: "app", kisi: "Güvenlik", ar: "أيوة طبعاً، اتفضل", tr: "eyve tab'an, itfaddal", anlam: "Evet tabii, buyur" },
-      { rol: "sen", ar: "شكراً، دقيقة واحدة وجاي", tr: "şukran, di'ii'a vahde ve gey", anlam: "Teşekkürler, bir dakikada geliyorum" }
+      { rol: "sen", ar: "شكراً، دقيقة واحدة وجاي", tr: "şukran, di'ii'a vahda ve gey", anlam: "Teşekkürler, bir dakikada geliyorum" }
     ]
   },
   {
@@ -663,7 +663,7 @@ const CEP_REHBERI = [
     ifadeler: [
       { ar: "المنيو لو سمحت", tr: "il-menyu lev semaht", anlam: "Menü lütfen" },
       { ar: "إيه أحسن حاجة عندكم؟", tr: "êh ahsen haage andukum?", anlam: "En iyi yemeğiniz ne?" },
-      { ar: "أنا مش باكل لحمة", tr: "ene miş beekul lahme", anlam: "Et yemiyorum" },
+      { ar: "أنا مش باكل لحمة", tr: "ene miş beekul lahma", anlam: "Et yemiyorum" },
       { ar: "من غير حاجة حارة", tr: "min ğêr haage harra", anlam: "Acısız olsun" },
       { ar: "مية معدنية لو سمحت", tr: "mayya maadaniyya lev semaht", anlam: "Maden suyu / şişe su lütfen" },
       { ar: "الحساب لو سمحت", tr: "il-hiseeb lev semaht", anlam: "Hesap lütfen" },
@@ -689,7 +689,7 @@ const CEP_REHBERI = [
       { ar: "ممكن تتكلم بشويش؟", tr: "mumkin titkellim bişviiş?", anlam: "Yavaş konuşabilir misin?" },
       { ar: "هاتصل بحضرتك بعدين", tr: "hattisil bihadritek baadeyn", anlam: "Sizi sonra arayacağım" },
       { ar: "ابعتلي إيميل لو سمحت", tr: "ibatli iimeyl lev semaht", anlam: "Bana e-posta gönderin lütfen" },
-      { ar: "عندنا اجتماع امتى؟", tr: "andine igtimee imte?", anlam: "Toplantımız ne zaman?" },
+      { ar: "عندنا اجتماع امتى؟", tr: "andine igtimee imta?", anlam: "Toplantımız ne zaman?" },
       { ar: "محتاجة وقت كمان", tr: "mihteege va't kemeen", anlam: "Daha fazla zamana ihtiyacım var (kadın söyler)" },
       { ar: "اتفقنا", tr: "ittefa'ne", anlam: "Anlaştık" }
     ]

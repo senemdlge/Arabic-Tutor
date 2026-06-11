@@ -1515,7 +1515,7 @@ function hizTuruBaslat() {
 // ===================== 🔢 SAYI ANTRENÖRÜ =====================
 const SAYI_BIRIM = {
   ar: ["صفر", "واحد", "اتنين", "تلاتة", "أربعة", "خمسة", "ستة", "سبعة", "تمانية", "تسعة", "عشرة"],
-  tr: ["sifr", "vaahid", "itneyn", "teleete", "arbaa", "hamse", "sitte", "seb'a", "temenye", "tis'a", "aşara"]
+  tr: ["sifr", "vaahid", "itneyn", "teleeta", "arbaa", "hamsa", "sitta", "seb'a", "temenya", "tis'a", "aşara"]
 };
 const SAYI_ONLU = {
   ar: ["حداشر", "اتناشر", "تلتاشر", "أربعتاشر", "خمستاشر", "ستاشر", "سبعتاشر", "تمنتاشر", "تسعتاشر"],
