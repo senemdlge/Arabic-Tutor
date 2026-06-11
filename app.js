@@ -1997,7 +1997,13 @@ $("#ayarHiz").onchange = (e) => { S.hiz = parseFloat(e.target.value); kaydet(); 
 $("#ayarDil").onchange = (e) => { dilDegistir(e.target.value); };
 $("#ayarOaiKey").onchange = (e) => { S.oaiKey = e.target.value.trim(); sesOnbellek.clear(); kaydet(); };
 $("#yedekAl").onclick = async () => {
-  const veri = localStorage.getItem("misirca") || "{}";
+  // Güvenlik: OpenAI anahtarı yedeğe DAHİL EDİLMEZ — yedek başkasıyla paylaşılabilir
+  let veri = "{}";
+  try {
+    const d = JSON.parse(localStorage.getItem("misirca") || "{}");
+    delete d.oaiKey;
+    veri = JSON.stringify(d);
+  } catch (e) {}
   if (navigator.share) {
     try { await navigator.share({ text: veri }); return; } catch (e) {}
   }
@@ -2009,7 +2015,8 @@ $("#yedekYukle").onclick = () => {
   try {
     const veri = JSON.parse(metin);
     if (typeof veri.xp !== "number") throw new Error("gecersiz");
-    localStorage.setItem("misirca", metin);
+    if (!veri.oaiKey && S.oaiKey) veri.oaiKey = S.oaiKey; // cihazdaki anahtar korunur
+    localStorage.setItem("misirca", JSON.stringify(veri));
     toast(t("yedek_tamam"));
     setTimeout(() => location.reload(), 800);
   } catch (e) { toast(t("yedek_hata")); }
