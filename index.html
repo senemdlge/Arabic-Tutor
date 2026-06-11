@@ -123,11 +123,14 @@
         <div id="ceviriMetin" class="buyuk-metin"></div>
         <div id="ceviriOkunus" class="okunus-not"></div>
         <div id="ceviriArapca" class="arapca-yazi"></div>
-        <div class="kelime-btnler" style="margin-top:8px">
+        <div class="kelime-btnler" style="margin-top:8px;flex-wrap:wrap">
           <button class="btn ses" id="ceviriDinle" data-i18n="dinle">🔊 Dinle</button>
           <button class="btn mic" id="ceviriTekrarla" data-i18n="sen_soyle">🎤 Sen Söyle</button>
+          <button class="btn" id="cevAltBtn" data-i18n="cev_alt">💡 Alternatifler</button>
+          <button class="btn" id="cevAnalizBtn" data-i18n="cev_analiz">🔍 Kelime Kelime</button>
         </div>
         <div id="ceviriTelaffuz"></div>
+        <div id="ceviriEkstra"></div>
       </div>
     </div>
   </section>
@@ -186,10 +189,6 @@
   <label class="ayar-satir">
     <span data-i18n="hiz">Konuşma hızı:</span>
     <input type="range" id="ayarHiz" min="0.5" max="1.2" step="0.1" value="0.8">
-  </label>
-  <label class="ayar-satir">
-    <span data-i18n="ses">Arapça ses:</span>
-    <select id="ayarSes"></select>
   </label>
   <label class="ayar-satir" style="flex-direction:column;align-items:flex-start">
     <span data-i18n="openai_anahtar">OpenAI API anahtarı (isteğe bağlı — çok daha doğal ses):</span>
