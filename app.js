@@ -179,7 +179,30 @@ function sonrakiSeviye(xp) {
 // ===================== SES (TTS) =====================
 let sesler = [];
 const sesOnbellek = new Map(); // OpenAI ses önbelleği: metin -> ObjectURL
-let aktifAudio = null;
+const SESSIZ_SES = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+// iOS otomatik çalmaları engellemesin diye tek bir oynatıcı kullanılır;
+// ilk kullanıcı dokunuşunda kilidi açılır ve sonraki tüm sesler ondan çalınır.
+const oaiPlayer = new Audio();
+
+async function oaiSesUrl(arapca) {
+  let url = sesOnbellek.get(arapca);
+  if (url) return url;
+  const res = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o-mini-tts",
+      voice: "alloy",
+      input: arapca,
+      instructions: "Speak in clear Egyptian Arabic dialect, at a slightly slow pace suitable for a language learner.",
+      response_format: "mp3"
+    })
+  });
+  if (!res.ok) throw new Error("TTS " + res.status);
+  url = URL.createObjectURL(await res.blob());
+  sesOnbellek.set(arapca, url);
+  return url;
+}
 
 function sesleriYukle() {
   sesler = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().startsWith("ar"));
@@ -233,37 +256,24 @@ let calmaAktif = false;
 function sesiDurdur() {
   calmaAktif = false;
   speechSynthesis.cancel();
-  if (aktifAudio) { aktifAudio.pause(); aktifAudio = null; }
+  oaiPlayer.pause();
 }
 
 async function seslendir(arapca) {
-  if (aktifAudio) { aktifAudio.pause(); aktifAudio = null; }
+  speechSynthesis.cancel();
+  oaiPlayer.pause();
   if (S.oaiKey) {
     try {
-      let url = sesOnbellek.get(arapca);
-      if (!url) {
-        const res = await fetch("https://api.openai.com/v1/audio/speech", {
-          method: "POST",
-          headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "gpt-4o-mini-tts",
-            voice: "alloy",
-            input: arapca,
-            instructions: "Speak in clear Egyptian Arabic dialect, at a slightly slow pace suitable for a language learner.",
-            response_format: "mp3"
-          })
-        });
-        if (!res.ok) throw new Error("OpenAI TTS " + res.status);
-        const blob = await res.blob();
-        url = URL.createObjectURL(blob);
-        sesOnbellek.set(arapca, url);
-      }
-      aktifAudio = new Audio(url);
-      aktifAudio.playbackRate = Math.min(1, S.hiz + 0.2);
-      await aktifAudio.play();
+      const url = await oaiSesUrl(arapca);
+      oaiPlayer.onended = null;
+      oaiPlayer.onpause = null;
+      oaiPlayer.src = url;
+      oaiPlayer.playbackRate = Math.min(1, S.hiz + 0.2);
+      await oaiPlayer.play();
       return;
     } catch (e) {
-      toast(t("oai_hata"), 3000);
+      // Yalnızca API hatasında bilgilendir; çalma engellenirse sessizce tarayıcıya düş
+      if (String(e && e.message).startsWith("TTS")) toast(t("oai_hata"), 3000);
     }
   }
   tarayiciSeslendir(arapca);
@@ -272,31 +282,19 @@ async function seslendir(arapca) {
 // Sırayla okuma için: bitince çözülen Promise döner
 function seslendirAsync(arapca) {
   return new Promise(async (resolve) => {
+    speechSynthesis.cancel();
+    oaiPlayer.pause();
     if (S.oaiKey) {
       try {
-        let url = sesOnbellek.get(arapca);
-        if (!url) {
-          const res = await fetch("https://api.openai.com/v1/audio/speech", {
-            method: "POST",
-            headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              model: "gpt-4o-mini-tts", voice: "alloy", input: arapca,
-              instructions: "Speak in clear Egyptian Arabic dialect, at a slightly slow pace suitable for a language learner.",
-              response_format: "mp3"
-            })
-          });
-          if (!res.ok) throw new Error("tts");
-          url = URL.createObjectURL(await res.blob());
-          sesOnbellek.set(arapca, url);
-        }
-        aktifAudio = new Audio(url);
-        aktifAudio.onended = resolve;
-        aktifAudio.onerror = resolve;
-        await aktifAudio.play();
+        const url = await oaiSesUrl(arapca);
+        oaiPlayer.src = url;
+        oaiPlayer.playbackRate = Math.min(1, S.hiz + 0.2);
+        oaiPlayer.onended = resolve;
+        oaiPlayer.onpause = resolve; // elle durdurulursa da ilerle
+        await oaiPlayer.play();
         return;
       } catch (e) { /* tarayıcıya düş */ }
     }
-    speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(arapca);
     u.lang = "ar-EG";
     u.rate = S.hiz;
@@ -327,7 +325,8 @@ function dinle(opts) {
 }
 
 // OpenAI ile: mikrofon kaydı + gpt-4o-mini-transcribe çözümlemesi
-function kayitDinle({ dil, durumEl, sonuc, bitti }) {
+// ipucu: beklenen Arapça cümle — çözümleyiciyi doğru yöne yönlendirir, tanıma çok daha isabetli olur
+function kayitDinle({ dil, durumEl, sonuc, bitti, ipucu }) {
   let rec = null, durduruldu = false, timer = null, stream = null;
   const durdur = () => {
     durduruldu = true;
@@ -363,6 +362,9 @@ function kayitDinle({ dil, durumEl, sonuc, bitti }) {
         fd.append("file", blob, "konusma." + (blob.type.includes("mp4") ? "mp4" : "webm"));
         fd.append("model", "gpt-4o-mini-transcribe");
         fd.append("language", dil.slice(0, 2));
+        if (dil.startsWith("ar")) {
+          fd.append("prompt", (ipucu ? ipucu + " — " : "") + "كلام باللهجة المصرية، اكتبه بالحروف العربية.");
+        }
         const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
           method: "POST",
           headers: { "Authorization": "Bearer " + S.oaiKey },
@@ -495,6 +497,35 @@ function benzerlik(hedefAr, soylenenler) {
     if (skor > enIyi) enIyi = skor;
   }
   return Math.round(enIyi * 100);
+}
+
+// Latin harfli metni karşılaştırma için sadeleştir: aksanlar düşer, çift harfler teklenir
+function latinKatla(s) {
+  return (s || "").toLowerCase()
+    .replace(/sh/g, "ş").replace(/kh/g, "h").replace(/gh/g, "ğ").replace(/ch/g, "ç")
+    .replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g")
+    .replace(/[êéèë]/g, "e").replace(/[ıîï]/g, "i").replace(/[öô]/g, "o").replace(/[üû]/g, "u")
+    .replace(/[âà]/g, "a").replace(/w/g, "v")
+    .replace(/[^a-z0-9]/g, "")
+    .replace(/(.)\1+/g, "$1");
+}
+
+// Telaffuz puanı: Arapça yazıyla VE Latin okunuşla karşılaştır, en iyisini al.
+// (Çözümleyici bazen "Yallah." gibi Latin harf döndürür — bu da doğru kabul edilmeli.)
+function telaffuzSkoru(item, soylenenler) {
+  let skor = benzerlik(item.ar, soylenenler);
+  const hedefL = latinKatla(item.tr);
+  if (hedefL) {
+    for (const s of soylenenler) {
+      if (/[؀-ۿ]/.test(s)) continue; // Arapça yazı zaten yukarıda karşılaştırıldı
+      const aday = latinKatla(s);
+      if (!aday) continue;
+      const mesafe = levenshtein(hedefL, aday);
+      const sk = Math.round(Math.max(0, 1 - mesafe / Math.max(hedefL.length, aday.length, 1)) * 100);
+      if (sk > skor) skor = sk;
+    }
+  }
+  return skor;
 }
 
 // ===================== ARAPÇA → OKUNUŞ =====================
@@ -670,8 +701,9 @@ function kelimeKartiBagla(kapsayici, item, key) {
     micBtn._durdur = dinle({
       dil: "ar-EG",
       durumEl: alan,
+      ipucu: item.ar,
       sonuc: (alternatifler) => {
-        const skor = benzerlik(item.ar, alternatifler);
+        const skor = telaffuzSkoru(item, alternatifler);
         telaffuzSonucuGoster(alan, skor, item, alternatifler[0]);
         S.stats.konusma++; kaydet();
         srsKaydet(item, skor >= 60);
@@ -1032,8 +1064,9 @@ function diyalogAdim() {
       mic._durdur = dinle({
         dil: "ar-EG",
         durumEl: $("#dlgDurum"),
+        ipucu: adim.ar,
         sonuc: (alternatifler) => {
-          const skor = benzerlik(adim.ar, alternatifler);
+          const skor = telaffuzSkoru(adim, alternatifler);
           S.stats.konusma++; kaydet();
           if (skor >= 50) {
             titret(40);
@@ -1441,10 +1474,11 @@ $("#ceviriTekrarla").onclick = () => {
   btn._durdur = dinle({
     dil: "ar-EG",
     durumEl: $("#ceviriTelaffuz"),
+    ipucu: sonCeviri.metin,
     sonuc: (alternatifler) => {
-      const skor = benzerlik(sonCeviri.metin, alternatifler);
-      telaffuzSonucuGoster($("#ceviriTelaffuz"), skor,
-        { tr: arapcaOkunus(sonCeviri.metin) }, alternatifler[0]);
+      const hedefItem = { ar: sonCeviri.metin, tr: arapcaOkunus(sonCeviri.metin) };
+      const skor = telaffuzSkoru(hedefItem, alternatifler);
+      telaffuzSonucuGoster($("#ceviriTelaffuz"), skor, hedefItem, alternatifler[0]);
       if (skor >= 60) hedefTamamla("konusma");
     },
     bitti: () => { btn._durdur = null; btn.classList.remove("dinliyor"); }
@@ -1669,6 +1703,11 @@ function baslat() {
       const u = new SpeechSynthesisUtterance(" ");
       u.volume = 0;
       speechSynthesis.speak(u);
+    } catch (e) {}
+    // Kalıcı oynatıcının kilidini aç: sonraki otomatik çalmalar (quiz, diyalog) engellenmesin
+    try {
+      oaiPlayer.src = SESSIZ_SES;
+      oaiPlayer.play().catch(() => {});
     } catch (e) {}
     setTimeout(sesleriYukle, 300);
   }, { once: true });

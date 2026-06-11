@@ -144,6 +144,19 @@ for (const [g, b] of Object.entries(fonetikBeklenen)) {
 }
 ok("İngilizce fonetik dönüştürücü doğru");
 
+// ---- 9b. Telaffuz puanlama: Latin harfli çözümlemeler de kabul edilmeli ----
+const skorKodu = appCode.slice(appCode.indexOf("function levenshtein"), appCode.indexOf("// ===================== ARAPÇA"));
+const { telaffuzSkoru } = new Function(
+  "const arapcaNormalize = " + appCode.slice(appCode.indexOf("function arapcaNormalize"), appCode.indexOf("function levenshtein")) +
+  skorKodu + "; return { telaffuzSkoru };")();
+const yalla = { ar: "يلا", tr: "yalla" };
+if (telaffuzSkoru(yalla, ["Yallah."]) < 75) fail(`"Yallah." için düşük puan: ${telaffuzSkoru(yalla, ["Yallah."])}`);
+if (telaffuzSkoru(yalla, ["يلا"]) !== 100) fail("Arapça tam eşleşme 100 değil");
+const shukran = { ar: "شكراً", tr: "şukran" };
+if (telaffuzSkoru(shukran, ["shukran"]) < 80) fail(`"shukran" için düşük puan: ${telaffuzSkoru(shukran, ["shukran"])}`);
+if (telaffuzSkoru(yalla, ["tamamen alakasız bir cümle"]) > 40) fail("Alakasız söze yüksek puan verildi");
+ok("Telaffuz puanlama: Arapça + Latin çözümlemeler doğru puanlanıyor");
+
 // ---- 10. manifest & sw ----
 const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
 if (!manifest.icons.length || !manifest.name) fail("manifest.json eksik");
