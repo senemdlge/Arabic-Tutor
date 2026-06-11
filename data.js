@@ -175,7 +175,7 @@ const CURRICULUM = [
           { ar: "عايزة", tr: "ayze", anlam: "İstiyorum (kadın söyler)" },
           { ar: "الحساب لو سمحت", tr: "il-hiseeb lev semaht", anlam: "Hesap lütfen" },
           { ar: "لذيذ", tr: "leziiz", anlam: "Lezzetli" },
-          { ar: "حلو أوي", tr: "hilv evi", anlam: "Çok güzel" },
+          { ar: "حلو أوي", tr: "helv avi", anlam: "Çok güzel" },
           { ar: "كمان واحد", tr: "kemeen vaahid", anlam: "Bir tane daha" },
           { ar: "من غير سكر", tr: "min ğêr sukker", anlam: "Şekersiz" },
           { ar: "بالهنا والشفا", tr: "bil-hene viş-şife", anlam: "Afiyet olsun" },
@@ -188,7 +188,7 @@ const CURRICULUM = [
         baslik: "Alışveriş ve Pazarlık",
         items: [
           { ar: "بكام ده؟", tr: "bikeem de?", anlam: "Bu kaça?" },
-          { ar: "غالي أوي", tr: "ğaali evi", anlam: "Çok pahalı" },
+          { ar: "غالي أوي", tr: "ğaali avi", anlam: "Çok pahalı" },
           { ar: "رخيص", tr: "rahiis", anlam: "Ucuz" },
           { ar: "فلوس", tr: "filuus", anlam: "Para" },
           { ar: "ريال", tr: "riyaal", anlam: "Riyal" },
@@ -269,7 +269,7 @@ const CURRICULUM = [
           { ar: "حر", tr: "harr", anlam: "Sıcak (hava)" },
           { ar: "برد", tr: "berd", anlam: "Soğuk" },
           { ar: "خايف", tr: "haayif", anlam: "Korkmuş" },
-          { ar: "أنا فرحان أوي", tr: "ene farhaan evi", anlam: "Çok sevinçliyim" },
+          { ar: "أنا فرحان أوي", tr: "ene farhaan avi", anlam: "Çok sevinçliyim" },
           { ar: "ولا يهمك", tr: "vele yhimmek", anlam: "Takma kafana" }
         ]
       },
@@ -556,7 +556,7 @@ const DIYALOGLAR = [
       { rol: "app", kisi: "Şoför", ar: "ماشي، اتفضل", tr: "meeşi, itfaddal", anlam: "Tamam, buyur" },
       { rol: "sen", ar: "بكام؟", tr: "bikeem?", anlam: "Kaça?" },
       { rol: "app", kisi: "Şoför", ar: "خمسين ريال", tr: "hamsiin riyaal", anlam: "Elli riyal" },
-      { rol: "sen", ar: "غالي أوي! تلاتين ماشي؟", tr: "ğaali evi! teleetiin meeşi?", anlam: "Çok pahalı! Otuz olur mu?" },
+      { rol: "sen", ar: "غالي أوي! تلاتين ماشي؟", tr: "ğaali avi! teleetiin meeşi?", anlam: "Çok pahalı! Otuz olur mu?" },
       { rol: "app", kisi: "Şoför", ar: "ماشي يا صاحبي", tr: "meeşi ye saahbi", anlam: "Tamam dostum" }
     ]
   },
@@ -667,14 +667,14 @@ const CEP_REHBERI = [
       { ar: "من غير حاجة حارة", tr: "min ğêr haage harra", anlam: "Acısız olsun" },
       { ar: "مية معدنية لو سمحت", tr: "mayya maadaniyya lev semaht", anlam: "Maden suyu / şişe su lütfen" },
       { ar: "الحساب لو سمحت", tr: "il-hiseeb lev semaht", anlam: "Hesap lütfen" },
-      { ar: "الأكل لذيذ أوي", tr: "il-ekl leziiz evi", anlam: "Yemek çok lezzetli" }
+      { ar: "الأكل لذيذ أوي", tr: "il-ekl leziiz avi", anlam: "Yemek çok lezzetli" }
     ]
   },
   {
     kategori: "🛍️ Alışveriş",
     ifadeler: [
       { ar: "بكام ده؟", tr: "bikeem de?", anlam: "Bu kaça?" },
-      { ar: "غالي أوي، خليه أرخص", tr: "ğaali evi, halliih arhas", anlam: "Çok pahalı, biraz indirin" },
+      { ar: "غالي أوي، خليه أرخص", tr: "ğaali avi, halliih arhas", anlam: "Çok pahalı, biraz indirin" },
       { ar: "ممكن أجرب؟", tr: "mumkin agarrab?", anlam: "Deneyebilir miyim?" },
       { ar: "عندك مقاس أكبر؟", tr: "andek ma'aas ekber?", anlam: "Daha büyük bedeni var mı?" },
       { ar: "هاخد ده", tr: "haahod de", anlam: "Bunu alıyorum" },
@@ -699,7 +699,7 @@ const CEP_REHBERI = [
     ifadeler: [
       { ar: "أنا مش بتكلم عربي كويس", tr: "ene miş betkellim arabi kuveyyis", anlam: "İyi Arapça konuşamıyorum" },
       { ar: "ممكن تقول تاني؟", tr: "mumkin ti'uul teeni?", anlam: "Tekrar söyler misiniz?" },
-      { ar: "متشكر أوي", tr: "mutşekkir evi", anlam: "Çok teşekkür ederim" },
+      { ar: "متشكر أوي", tr: "mutşekkir avi", anlam: "Çok teşekkür ederim" },
       { ar: "معلش، آسف", tr: "maaleş, eesif", anlam: "Kusura bakmayın, üzgünüm" },
       { ar: "بعد إذنك", tr: "baad iznek", anlam: "İzninizle" },
       { ar: "ربنا يخليك", tr: "rabbine yhalliik", anlam: "Allah razı olsun" },

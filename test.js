@@ -137,7 +137,7 @@ const fonetikTest = new Function(
   "const S={dil:'en'};" +
   appCode.slice(appCode.indexOf("const EN_FONETIK"), appCode.indexOf("function applyI18n")) +
   "; return okunusGoster;")();
-const fonetikBeklenen = { "şukran": "shukran", "vaahid": "waahid", "ğaali evi": "ghaali ewi", "sabaah il-hêr": "sabaah il-heir" };
+const fonetikBeklenen = { "şukran": "shukran", "vaahid": "waahid", "ğaali avi": "ghaali awi", "sabaah il-hêr": "sabaah il-heir" };
 for (const [g, b] of Object.entries(fonetikBeklenen)) {
   const s = fonetikTest(g);
   if (s !== b) fail(`okunusGoster("${g}") = "${s}" beklenen "${b}"`);
