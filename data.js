@@ -587,6 +587,48 @@ const DIYALOGLAR = [
       { rol: "app", kisi: "Müdür", ar: "شغل ممتاز!", tr: "şuğl mumteez!", anlam: "Mükemmel iş!" },
       { rol: "sen", ar: "شكراً على وقتك", tr: "şukran ale va'tek", anlam: "Zamanın için teşekkürler" }
     ]
+  },
+  {
+    id: "dlg5",
+    baslik: "📦 Kurye Adresi Bulamadı",
+    seviye: "Orta",
+    adimlar: [
+      { rol: "app", kisi: "Kurye", ar: "ألو، أنا الطيار، مش لاقي العنوان", tr: "alo, ene it-tayyaar, miş leei il-unvaan", anlam: "Alo, ben kurye, adresi bulamıyorum" },
+      { rol: "sen", ar: "إنت فين دلوقتي؟", tr: "inte feyn dilva'ti?", anlam: "Şu an neredesin?" },
+      { rol: "app", kisi: "Kurye", ar: "أنا قدام البوابة الرئيسية", tr: "ene uddeem il-bevveebe ir-ra'iisiyye", anlam: "Ana kapının önündeyim" },
+      { rol: "sen", ar: "تمام، خش يمين وبعدين على طول", tr: "temeem, hoş yimiin ve baadeyn ale tuul", anlam: "Tamam, sağa gir sonra düz devam et" },
+      { rol: "app", kisi: "Kurye", ar: "العمارة رقم كام؟", tr: "il-imaara ra'm keem?", anlam: "Bina numarası kaç?" },
+      { rol: "sen", ar: "عمارة خمسة، الدور التاني", tr: "imaara hamse, id-dôr it-teeni", anlam: "Beş numaralı bina, ikinci kat" },
+      { rol: "app", kisi: "Kurye", ar: "ماشي، جاي في دقيقتين", tr: "meeşi, gey fi di'i'teyn", anlam: "Tamam, iki dakikaya geliyorum" },
+      { rol: "sen", ar: "تمام، مستنيك", tr: "temeem, mistanniik", anlam: "Tamam, seni bekliyorum" }
+    ]
+  },
+  {
+    id: "dlg6",
+    baslik: "💂 Güvenlik Kuryeyi İçeri Almıyor",
+    seviye: "Orta",
+    adimlar: [
+      { rol: "app", kisi: "Güvenlik", ar: "في مشكلة، الطيار مش هيخش من غير تصريح", tr: "fi muşkile, it-tayyaar miş hayhoş min ğêr tasriih", anlam: "Sorun var, kurye izinsiz giremez" },
+      { rol: "sen", ar: "ليه؟ ده جايبلي أكل", tr: "lêh? de gayibli ekl", anlam: "Neden? Bana yemek getiriyor" },
+      { rol: "app", kisi: "Güvenlik", ar: "القواعد كده، لازم إذن", tr: "il-kaveeid kide, leezim izn", anlam: "Kurallar böyle, izin lazım" },
+      { rol: "sen", ar: "طب ممكن أنزل أستلم بنفسي؟", tr: "tab mumkin enzil estilim binefsi?", anlam: "Peki inip kendim teslim alabilir miyim?" },
+      { rol: "app", kisi: "Güvenlik", ar: "أيوة طبعاً، اتفضل", tr: "eyve tab'an, itfaddal", anlam: "Evet tabii, buyur" },
+      { rol: "sen", ar: "شكراً، دقيقة واحدة وجاي", tr: "şukran, di'ii'a vahde ve gey", anlam: "Teşekkürler, bir dakikada geliyorum" }
+    ]
+  },
+  {
+    id: "dlg7",
+    baslik: "🛵 Kapıda Teslimat ve Ödeme",
+    seviye: "Kolay",
+    adimlar: [
+      { rol: "app", kisi: "Kurye", ar: "مساء الخير، الأوردر باسمك؟", tr: "mesee' il-hêr, il-order bismek?", anlam: "İyi akşamlar, sipariş senin adına mı?" },
+      { rol: "sen", ar: "أيوة، ده طلبي", tr: "eyve, de talabi", anlam: "Evet, bu benim siparişim" },
+      { rol: "app", kisi: "Kurye", ar: "الحساب مية وخمسين", tr: "il-hiseeb miyya ve hamsiin", anlam: "Hesap yüz elli" },
+      { rol: "sen", ar: "ممكن أدفع بالكارت؟", tr: "mumkin edfa bil-kart?", anlam: "Kartla ödeyebilir miyim?" },
+      { rol: "app", kisi: "Kurye", ar: "أيوة، اتفضل الماكينة", tr: "eyve, itfaddal il-mekana", anlam: "Evet, buyur cihaz" },
+      { rol: "sen", ar: "اتفضل، وده ليك", tr: "itfaddal, ve de liik", anlam: "Buyur, bu da senin (bahşiş)" },
+      { rol: "app", kisi: "Kurye", ar: "ألف شكر يا فندم!", tr: "elf şukr ye fendim!", anlam: "Çok teşekkürler efendim!" }
+    ]
   }
 ];
 
