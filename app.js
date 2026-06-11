@@ -184,23 +184,26 @@ const SESSIZ_SES = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAE
 // ilk kullanıcı dokunuşunda kilidi açılır ve sonraki tüm sesler ondan çalınır.
 const oaiPlayer = new Audio();
 
-async function oaiSesUrl(arapca) {
-  let url = sesOnbellek.get(arapca);
+const EGYPT_YONERGE = "Speak in clear Egyptian Arabic dialect, at a slightly slow pace suitable for a language learner.";
+
+async function oaiSesUrl(metin, yonerge) {
+  const anahtar = (yonerge || "") + "|" + metin;
+  let url = sesOnbellek.get(anahtar);
   if (url) return url;
   const res = await fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "gpt-4o-mini-tts",
-      voice: "alloy",
-      input: arapca,
-      instructions: "Speak in clear Egyptian Arabic dialect, at a slightly slow pace suitable for a language learner.",
+      voice: "alloy", // tek sabit ses: her sekmede aynı ton
+      input: metin,
+      instructions: yonerge || EGYPT_YONERGE,
       response_format: "mp3"
     })
   });
   if (!res.ok) throw new Error("TTS " + res.status);
   url = URL.createObjectURL(await res.blob());
-  sesOnbellek.set(arapca, url);
+  sesOnbellek.set(anahtar, url);
   return url;
 }
 
@@ -307,8 +310,21 @@ function seslendirAsync(arapca) {
   });
 }
 
-function anadilSeslendir(metin) {
+// Ana dilde (TR/EN) seslendirme — anahtar varsa aynı OpenAI sesiyle (ton tutarlılığı için)
+async function anadilSeslendir(metin) {
   speechSynthesis.cancel();
+  oaiPlayer.pause();
+  if (S.oaiKey) {
+    try {
+      const url = await oaiSesUrl(metin, "Speak naturally and clearly in " + (S.dil === "en" ? "English" : "Turkish") + ".");
+      oaiPlayer.onended = null;
+      oaiPlayer.onpause = null;
+      oaiPlayer.src = url;
+      oaiPlayer.playbackRate = 1;
+      await oaiPlayer.play();
+      return;
+    } catch (e) { /* tarayıcıya düş */ }
+  }
   const u = new SpeechSynthesisUtterance(metin);
   u.lang = S.dil === "en" ? "en-US" : "tr-TR";
   speechSynthesis.speak(u);
@@ -680,6 +696,7 @@ function kelimeKartiHTML(item, key) {
         <div class="kelime-btnler">
           <button class="btn ses" data-rol="dinle" data-key="${key}">🔊</button>
           <button class="btn mic" data-rol="soyle" data-key="${key}">🎤</button>
+          <button class="btn" data-rol="alt" data-key="${key}" title="${t("alt_baslik")}">💡</button>
         </div>
       </div>
       <div class="telaffuz-alani" data-key="${key}"></div>
@@ -713,6 +730,75 @@ function kelimeKartiBagla(kapsayici, item, key) {
       bitti: () => { micBtn._durdur = null; micBtn.classList.remove("dinliyor"); micBtn.textContent = "🎤"; }
     });
   };
+  // 💡 Alternatif söyleyişler
+  kapsayici.querySelector(`[data-rol="alt"][data-key="${key}"]`).onclick = async () => {
+    if (!S.oaiKey) {
+      alan.innerHTML = `<div class="telaffuz-sonuc orta">${t("alt_anahtar")}</div>`;
+      return;
+    }
+    alan.innerHTML = `<div class="dinleme-durum">${t("yukleniyor")}</div>`;
+    try {
+      alternatifleriGoster(alan, await aiAlternatifler(item));
+    } catch (e) {
+      alan.innerHTML = `<div class="telaffuz-sonuc kotu">${t("alt_hata")}</div>`;
+    }
+  };
+}
+
+// ===================== 💡 ALTERNATİF SÖYLEYİŞLER =====================
+const altOnbellek = new Map(); // item.tr -> [{ar, tr, anlam}]
+
+// "ARABIC ||| translit ||| meaning" satırlarını çöz
+function aiSatirlariCoz(metin) {
+  return metin.split("\n")
+    .filter(s => s.includes("|||"))
+    .map(s => {
+      const p = s.split("|||").map(x => x.trim().replace(/^[-*\d.\s]+/, ""));
+      return { ar: p[0], tr: p[1] || "", anlam: p[2] || "" };
+    })
+    .filter(x => x.ar);
+}
+
+async function aiAlternatifler(item) {
+  if (altOnbellek.has(item.tr)) return altOnbellek.get(item.tr);
+  const anaDil = S.dil === "en" ? "English" : "Turkish";
+  const fonetik = anaDil === "Turkish" ? "Turkish phonetics (ş, ğ, ı)" : "English phonetics (sh, kh)";
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.4,
+      max_tokens: 220,
+      messages: [
+        { role: "system", content: "You are an Egyptian Arabic phrasebook expert. Output only the requested lines, nothing else." },
+        { role: "user", content: `Give 2-3 common ALTERNATIVE Egyptian Arabic ways to express the same meaning as "${item.ar}" (meaning: ${item.anlam}). Do not repeat the original. One per line, format exactly:\nARABIC ||| transliteration in ${fonetik} ||| very short ${anaDil} note on meaning/nuance` }
+      ]
+    })
+  });
+  if (!res.ok) throw new Error("alt " + res.status);
+  const data = await res.json();
+  const liste = aiSatirlariCoz((data.choices && data.choices[0].message.content) || "");
+  if (!liste.length) throw new Error("bos");
+  altOnbellek.set(item.tr, liste);
+  return liste;
+}
+
+function alternatifleriGoster(alan, liste) {
+  alan.innerHTML = `
+    <div class="telaffuz-sonuc iyi">
+      <b>${t("alt_baslik")}</b>
+      ${liste.map((a, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px">
+          <span><span class="okunus" style="font-size:1rem">${a.tr}</span><br>
+          <span class="anlam" style="font-size:.85rem">${a.anlam}</span>
+          <span class="arapca-yazi" style="font-size:1rem">${a.ar}</span></span>
+          <button class="btn ses" data-alt-ses="${i}">🔊</button>
+        </div>`).join("")}
+    </div>`;
+  alan.querySelectorAll("[data-alt-ses]").forEach(b => {
+    b.onclick = () => { seslendir(liste[+b.dataset.altSes].ar); hedefTamamla("dinleme"); };
+  });
 }
 
 function telaffuzSonucuGoster(alan, skor, item, duyulan) {
@@ -1071,10 +1157,14 @@ function diyalogAdim() {
           if (skor >= 50) {
             titret(40);
             hedefTamamla("konusma");
-            balonEkle(adim);
-            dlg.adim++;
-            $("#dlgSira").innerHTML = "";
-            setTimeout(diyalogAdim, 400);
+            // Önce sonucu göster, sonra ilerle
+            $("#dlgDurum").innerHTML = `<div class="telaffuz-sonuc iyi">🎉 <b>%${skor}</b> — ${okunusGoster(adim.tr)} ✓</div>`;
+            setTimeout(() => {
+              balonEkle(adim);
+              dlg.adim++;
+              $("#dlgSira").innerHTML = "";
+              diyalogAdim();
+            }, 1400);
           } else {
             titret([60, 40, 60]);
             $("#dlgDurum").innerHTML = `<div class="telaffuz-sonuc orta">${tf("dlg_yanlis", { s: skor })}<div class="duyulan">${t("duydugum")} "${arapcaOkunus(alternatifler[0]) || alternatifler[0]}"</div></div>`;
@@ -1177,6 +1267,51 @@ async function aiGonderMesaj(mesaj) {
     aiGecmis.pop();
   }
 }
+
+// 💡 İpucu: hocanın son sorusuna verilebilecek basit bir cevap öner
+$("#aiHint").onclick = async () => {
+  if (!S.oaiKey) {
+    $("#aiDurum").innerHTML = `<div class="telaffuz-sonuc orta">${t("ai_anahtar_gerek")}</div>`;
+    return;
+  }
+  $("#aiDurum").innerHTML = `<div class="dinleme-durum">${t("yukleniyor")}</div>`;
+  const sonAsistan = [...aiGecmis].reverse().find(m => m.role === "assistant");
+  const anaDil = S.dil === "en" ? "English" : "Turkish";
+  const fonetik = anaDil === "Turkish" ? "Turkish phonetics (ş, ğ)" : "English phonetics (sh, kh)";
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.5,
+        max_tokens: 120,
+        messages: [
+          { role: "system", content: "You help a beginner reply in Egyptian Arabic. Output only the requested line." },
+          { role: "user", content: `The tutor's last message was: "${sonAsistan ? sonAsistan.content : "izzeyyek?"}". Suggest ONE very simple, natural reply the learner could say. Format exactly:\nARABIC ||| transliteration in ${fonetik} ||| short ${anaDil} meaning` }
+        ]
+      })
+    });
+    if (!res.ok) throw new Error("hint");
+    const data = await res.json();
+    const oneri = aiSatirlariCoz((data.choices && data.choices[0].message.content) || "")[0];
+    if (!oneri) throw new Error("bos");
+    $("#aiDurum").innerHTML = `
+      <div class="telaffuz-sonuc iyi">
+        <b>${t("ai_ipucu_baslik")}</b><br>
+        <span class="okunus" style="font-size:1.05rem">${oneri.tr}</span><br>
+        <span class="anlam">${oneri.anlam}</span>
+        <div class="kelime-btnler" style="margin-top:8px">
+          <button class="btn ses" id="aiHintSes">🔊</button>
+          <button class="btn primary" id="aiHintGonder">${t("ai_ipucu_gonder")}</button>
+        </div>
+      </div>`;
+    $("#aiHintSes").onclick = () => seslendir(oneri.ar);
+    $("#aiHintGonder").onclick = () => { $("#aiDurum").innerHTML = ""; aiGonderMesaj(oneri.tr); };
+  } catch (e) {
+    $("#aiDurum").innerHTML = `<div class="telaffuz-sonuc kotu">${t("ai_hata")}</div>`;
+  }
+};
 
 $("#modAiHoca").onclick = aiHocaAc;
 $("#aiGonder").onclick = () => aiGonderMesaj($("#aiGirdi").value);
