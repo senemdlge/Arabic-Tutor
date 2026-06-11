@@ -1,5 +1,5 @@
 /* Saudi Survival App — basit önbellek: dersler internetsiz de çalışsın */
-const CACHE = "saudi-survival-v4";
+const CACHE = "saudi-survival-v5";
 const DOSYALAR = ["./", "./index.html", "./style.css", "./app.js", "./data.js", "./en.js", "./manifest.json", "./icon.svg", "./icon-180.png"];
 
 self.addEventListener("install", (e) => {
