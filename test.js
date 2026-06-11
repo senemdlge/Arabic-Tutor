@@ -120,8 +120,8 @@ const sayiTest = new Function(appCode.slice(appCode.indexOf("const SAYI_BIRIM"),
   + "; return sayiSoyle;")();
 const beklenen = {
   0: "sifr", 1: "vaahid", 7: "seb'a", 10: "aşara", 11: "hidaaşar", 15: "hamastaaşar",
-  20: "işriin", 25: "hamse ve işriin", 99: "tis'a ve tisaiin", 100: "miyya",
-  101: "miyya ve vaahid", 125: "miyya ve hamse ve işriin", 200: "miteyn",
+  20: "işriin", 25: "hamsa ve işriin", 99: "tis'a ve tisaiin", 100: "miyya",
+  101: "miyya ve vaahid", 125: "miyya ve hamsa ve işriin", 200: "miteyn",
   350: "tultumiyya ve hamsiin", 999: "tusumiyya ve tis'a ve tisaiin"
 };
 let sayiHata = 0;
