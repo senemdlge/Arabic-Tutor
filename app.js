@@ -676,7 +676,7 @@ function dersSecicileriDoldur() {
   const konusmaSecili = $("#konusmaDersSecimi").value;
   $("#dersSecimi").innerHTML = html;
   $("#quizDersSecimi").innerHTML = `<option value="__hepsi__">${t("tum_dersler")}</option>` + html;
-  $("#konusmaDersSecimi").innerHTML = html;
+  $("#konusmaDersSecimi").innerHTML = `<option value="__hepsi__">${t("tum_dersler")}</option>` + html;
   if (dersSecili) $("#dersSecimi").value = dersSecili;
   if (quizSecili) $("#quizDersSecimi").value = quizSecili;
   if (konusmaSecili) $("#konusmaDersSecimi").value = konusmaSecili;
@@ -1335,14 +1335,79 @@ $("#aiMic").onclick = () => {
   });
 };
 
-// ===================== KONUŞMA PANELİ =====================
+// ===================== KONUŞMA PANELİ — TELAFFUZ SEANSI =====================
+// Ders sekmesinin kopyası değil: seçilen dersten 10 kelime tek tek gelir,
+// söyle → puan al → otomatik sonraki. Sonunda seans özeti.
+let tseans = null;
+
 function konusmaCiz() {
-  const dersId = $("#konusmaDersSecimi").value;
-  const ders = tumDersler().find(d => d.id === dersId);
-  if (!ders) return;
+  const secim = $("#konusmaDersSecimi").value;
+  const havuz = secim === "__hepsi__"
+    ? tumDersler().flatMap(d => d.items)
+    : (tumDersler().find(d => d.id === secim) || { items: [] }).items;
+  tseans = { kartlar: karistir(havuz).slice(0, 10), i: 0, toplam: 0, denenen: 0 };
+  telaffuzKartGoster();
+}
+
+function telaffuzKartGoster() {
   const alan = $("#konusmaAlani");
-  alan.innerHTML = `<div class="card">${ders.items.map((it, i) => kelimeKartiHTML(it, "k" + i)).join("")}</div>`;
-  ders.items.forEach((it, i) => kelimeKartiBagla(alan, it, "k" + i));
+  if (!tseans || tseans.i >= tseans.kartlar.length) {
+    const ort = tseans && tseans.denenen ? Math.round(tseans.toplam / tseans.denenen) : 0;
+    alan.innerHTML = `
+      <div class="card" style="text-align:center">
+        <div class="skor-genis">🎤 %${ort}</div>
+        <p>${tf("tel_ozet", { n: ort })}</p>
+        <button class="btn primary" id="telYeniSeans">${t("tel_tekrar")}</button>
+      </div>`;
+    $("#telYeniSeans").onclick = konusmaCiz;
+    if (tseans && tseans.denenen) xpEkle(Math.max(3, Math.round(ort / 10)), "xp_tel");
+    if (ort >= 75) konfetiAt();
+    tseans = null;
+    return;
+  }
+  const item = tseans.kartlar[tseans.i];
+  alan.innerHTML = `
+    <div class="quiz-ilerleme">${tseans.i + 1} / ${tseans.kartlar.length}</div>
+    <div class="card" style="text-align:center">
+      <div class="okunus" style="font-size:1.6rem">${okunusGoster(item.tr)}</div>
+      <div class="anlam" style="margin:4px 0 10px">${cAl(item.anlam)}</div>
+      <div class="arapca-yazi">${item.ar}</div>
+      <div class="kelime-btnler" style="justify-content:center;margin-top:10px">
+        <button class="btn ses" id="telSes">🔊</button>
+        <button class="btn mic" id="telMic">🎤</button>
+        <button class="btn" id="telGec">${t("gec")}</button>
+      </div>
+      <div id="telDurum" style="text-align:left"></div>
+    </div>`;
+  $("#telSes").onclick = () => { seslendir(item.ar); hedefTamamla("dinleme"); };
+  $("#telGec").onclick = () => { tseans.i++; telaffuzKartGoster(); };
+  $("#telMic").onclick = () => {
+    const mic = $("#telMic");
+    if (mic._durdur) { mic._durdur(); return; }
+    mic.classList.add("dinliyor");
+    mic._durdur = dinle({
+      dil: "ar-EG",
+      durumEl: $("#telDurum"),
+      ipucu: item.ar,
+      sonuc: (alternatifler) => {
+        const skor = telaffuzSkoru(item, alternatifler);
+        telaffuzSonucuGoster($("#telDurum"), skor, item, alternatifler[0]);
+        S.stats.konusma++;
+        tseans.toplam += skor;
+        tseans.denenen++;
+        kaydet();
+        srsKaydet(item, skor >= 60);
+        if (skor >= 60) {
+          hedefTamamla("konusma");
+          titret(40);
+          setTimeout(() => { if (tseans) { tseans.i++; telaffuzKartGoster(); } }, 1600);
+        } else {
+          titret([60, 40, 60]);
+        }
+      },
+      bitti: () => { const m = $("#telMic"); if (m) { m._durdur = null; m.classList.remove("dinliyor"); } }
+    });
+  };
 }
 
 $("#modTelaffuz").onclick = () => {

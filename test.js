@@ -95,7 +95,7 @@ for (const m of html.matchAll(/id="([^"]+)"/g)) htmlIds.add(m[1]);
 // Çalışma anında JS'in oluşturduğu kimlikler:
 const dinamik = new Set(["derseGitBtn", "srsGit", "iosBanner", "iosBannerKapat", "dersiBitirBtn", "dersCal",
   "quizSes", "fkart", "fSes", "fBildim", "fBilemedim", "dlgGeri", "dlgBalonlar", "dlgSira", "dlgIpucu",
-  "dlgMic", "dlgAtla", "dlgDurum", "dlgBitti", "hizSure", "hizBar", "sayiGirdi", "sayiCevirBtn", "sayiCevirSonuc", "aiHintSes", "aiHintGonder"]);
+  "dlgMic", "dlgAtla", "dlgDurum", "dlgBitti", "hizSure", "hizBar", "sayiGirdi", "sayiCevirBtn", "sayiCevirSonuc", "aiHintSes", "aiHintGonder", "telYeniSeans", "telSes", "telGec", "telMic", "telDurum"]);
 const eksikId = [];
 for (const m of appCode.matchAll(/\$\("#([A-Za-z0-9_-]+)"\)/g)) {
   const id = m[1];
