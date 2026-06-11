@@ -892,9 +892,14 @@ function quizSoruGoster() {
     <div class="quiz-ilerleme">${t("soru")} ${quiz.indeks + 1} / ${quiz.sorular.length} — ${t("dogru")}: ${quiz.dogru}</div>
     <div class="card">
       ${quiz.tur === "dinleme"
-        ? `<div style="text-align:center"><button class="btn ses" id="quizSes" style="font-size:1.5rem;padding:14px 26px">🔊</button></div>
+        ? `<div style="display:flex;gap:10px;justify-content:center">
+             <button class="btn ses" id="quizSes" style="font-size:1.5rem;padding:14px 26px">🔊</button>
+             <button class="btn" id="quizHint" style="font-size:1.2rem" title="İpucu / Hint">💡</button>
+           </div>
+           <div id="quizHintAlan" style="text-align:center;margin-top:8px"></div>
            <p class="ipucu" style="text-align:center">${t("dinleme_ipucu")}</p>`
         : `<div class="quiz-soru">${okunusGoster(q.tr)}</div>
+           <div style="text-align:center;margin-bottom:8px"><button class="btn" id="quizHint" title="İpucu / Hint">💡 🔊</button></div>
            <p class="ipucu" style="text-align:center">${t("quiz_soru_ipucu")}</p>`}
       <div class="quiz-secenekler">
         ${secenekler.map((s, i) => `<button class="quiz-secenek" data-i="${i}">${cAl(s.anlam)}</button>`).join("")}
@@ -904,6 +909,13 @@ function quizSoruGoster() {
   if (quiz.tur === "dinleme") {
     $("#quizSes").onclick = () => seslendir(q.ar);
     seslendir(q.ar);
+    // 💡 Dinleme ipucu: okunuşu göster
+    $("#quizHint").onclick = () => {
+      $("#quizHintAlan").innerHTML = `<span class="okunus">${okunusGoster(q.tr)}</span>`;
+    };
+  } else {
+    // 💡 Anlam ipucu: sesli söyle
+    $("#quizHint").onclick = () => seslendir(q.ar);
   }
   alan.querySelectorAll(".quiz-secenek").forEach((btn, i) => {
     btn.onclick = () => {
@@ -1954,10 +1966,23 @@ function gorunumUygula() {
 }
 
 function ustBilgiGuncelle() {
-  $("#streakBadge").textContent = "🔥 " + S.seri;
-  $("#xpBadge").textContent = "⭐ " + S.xp;
-  $("#seviyeBadge").textContent = seviyeBul(S.xp).ikon;
+  const sv = seviyeBul(S.xp);
+  $("#statOzet").textContent = `${sv.ikon} ${S.xp}`;
+  $("#statPopover").innerHTML = `
+    <div class="stat-satir"><span>${sv.ikon} ${t("stat_seviye")}</span><b>${cAl(sv.ad)}</b></div>
+    <div class="stat-satir"><span>🔥 ${t("stat_seri")}</span><b>${S.seri} ${t("stat_gun")}</b></div>
+    <div class="stat-satir"><span>⭐ ${t("stat_xp")}</span><b>${S.xp}</b></div>`;
 }
+
+$("#statOzet").onclick = (e) => {
+  e.stopPropagation();
+  $("#statPopover").classList.toggle("hidden");
+  ustBilgiGuncelle();
+};
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#statPopover") && e.target.id !== "statOzet")
+    $("#statPopover").classList.add("hidden");
+});
 
 // ===================== BAŞLAT =====================
 function baslat() {
