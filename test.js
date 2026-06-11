@@ -95,7 +95,7 @@ for (const m of html.matchAll(/id="([^"]+)"/g)) htmlIds.add(m[1]);
 // Çalışma anında JS'in oluşturduğu kimlikler:
 const dinamik = new Set(["derseGitBtn", "srsGit", "iosBanner", "iosBannerKapat", "dersiBitirBtn", "dersCal",
   "quizSes", "fkart", "fSes", "fBildim", "fBilemedim", "dlgGeri", "dlgBalonlar", "dlgSira", "dlgIpucu",
-  "dlgMic", "dlgAtla", "dlgDurum", "dlgBitti", "hizSure", "hizBar", "sayiGirdi", "sayiCevirBtn", "sayiCevirSonuc"]);
+  "dlgMic", "dlgAtla", "dlgDurum", "dlgBitti", "hizSure", "hizBar", "sayiGirdi", "sayiCevirBtn", "sayiCevirSonuc", "aiHintSes", "aiHintGonder"]);
 const eksikId = [];
 for (const m of appCode.matchAll(/\$\("#([A-Za-z0-9_-]+)"\)/g)) {
   const id = m[1];
@@ -107,7 +107,7 @@ else ok("Tüm statik element kimlikleri index.html'de mevcut");
 
 // ---- 7. index.html'deki id'lere app.js'ten erişim (ters yön: ölü id kontrolü değil, kritik olanlar) ----
 ["dersSecimi", "quizDersSecimi", "konusmaDersSecimi", "modAnlam", "modDinleme", "modEslestirme",
- "modFlashcard", "modHiz", "modSayi", "modTelaffuz", "modDiyalog", "modAiHoca", "aiGonder", "aiMic",
+ "modFlashcard", "modHiz", "modSayi", "modTelaffuz", "modDiyalog", "modAiHoca", "aiGonder", "aiMic", "aiHint",
  "ceviriMic", "ceviriYap", "ceviriDinle", "ceviriTekrarla", "paylasBtn", "dilBtn", "settingsBtn",
  "ayarDil", "ayarOaiKey", "yedekAl", "yedekYukle"].forEach(id => {
   if (!htmlIds.has(id)) fail(`Kritik id index.html'de yok: ${id}`);
