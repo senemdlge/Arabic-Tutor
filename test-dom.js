@@ -28,6 +28,9 @@ window.HTMLElement.prototype.scrollIntoView = () => {};
 window.scrollTo = () => {};
 window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
 window.HTMLDialogElement.prototype.close = function () { this.open = false; };
+// jsdom medya çalmayı desteklemez; "Not implemented" uyarılarını önle
+window.HTMLMediaElement.prototype.play = async function () {};
+window.HTMLMediaElement.prototype.pause = function () {};
 
 const hatalar = [];
 window.addEventListener("error", (e) => hatalar.push(e.message));
