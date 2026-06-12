@@ -305,6 +305,41 @@ function seslendirAsync(arapca) {
 }
 
 // Ana dilde (TR/EN) seslendirme — anahtar varsa aynı OpenAI sesiyle (ton tutarlılığı için)
+// Basılı tutunca yavaş okuma (öğrenme için)
+async function yavasSeslendir(arapca) {
+  speechSynthesis.cancel();
+  oaiPlayer.pause();
+  if (S.oaiKey) {
+    try {
+      const url = await oaiSesUrl(arapca);
+      oaiPlayer.onended = null;
+      oaiPlayer.onpause = null;
+      oaiPlayer.src = url;
+      oaiPlayer.playbackRate = 0.65;
+      await oaiPlayer.play();
+    } catch (e) {}
+    return;
+  }
+  const u = new SpeechSynthesisUtterance(arapca);
+  u.lang = "ar-EG";
+  u.rate = Math.max(0.4, S.hiz * 0.6);
+  const v = enIyiSes();
+  if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+
+// Bir tuşa basılı tutma davranışı bağla: 450ms sonra yavaş okur, normal tıklamayı bastırır
+function uzunBasincaYavas(btn, arGetir) {
+  let timer = null;
+  btn._lp = false;
+  btn.addEventListener("touchstart", () => {
+    btn._lp = false;
+    timer = setTimeout(() => { btn._lp = true; titret(20); yavasSeslendir(arGetir()); }, 450);
+  }, { passive: true });
+  ["touchend", "touchcancel", "touchmove"].forEach(ev =>
+    btn.addEventListener(ev, () => clearTimeout(timer), { passive: true }));
+}
+
 async function anadilSeslendir(metin) {
   speechSynthesis.cancel();
   oaiPlayer.pause();
@@ -572,23 +607,53 @@ function srsKaydet(item, dogruMu) {
     else S.srs[key] = { ...mevcut, aralik: yeniAralik, due: gunNo() + yeniAralik };
   }
   kaydet();
+  srsNoktaGuncelle();
 }
 
 function srsBekleyenler() {
   return Object.values(S.srs).filter(k => k.due <= gunNo());
 }
 
+// Pratik sekmesinde bekleyen tekrar rozeti (kırmızı sayaç)
+function srsNoktaGuncelle() {
+  const tab = $('.tab[data-tab="pratik"]');
+  if (!tab) return;
+  const n = srsBekleyenler().length;
+  let nokta = tab.querySelector(".nokta");
+  if (n > 0) {
+    if (!nokta) {
+      nokta = document.createElement("span");
+      nokta.className = "nokta";
+      tab.appendChild(nokta);
+    }
+    nokta.textContent = n > 9 ? "9+" : n;
+  } else if (nokta) {
+    nokta.remove();
+  }
+}
+
 // ===================== SEKMELER =====================
+const TAB_SIRA = ["bugun", "ders", "pratik", "konusma", "cevirmen", "rehber", "ajanda"];
+const kaydirmaHafiza = {}; // sekme başına kaydırma konumu (native his)
+
 $$(".tab").forEach(btn => {
   btn.addEventListener("click", () => {
+    const eski = $(".tab.active");
+    const eskiTab = eski ? eski.dataset.tab : null;
+    if (eskiTab === btn.dataset.tab) return;
+    if (eskiTab) kaydirmaHafiza[eskiTab] = window.scrollY;
     $$(".tab").forEach(b => b.classList.remove("active"));
-    $$(".panel").forEach(p => p.classList.remove("active"));
+    $$(".panel").forEach(p => p.classList.remove("active", "kayar-sol", "kayar-sag"));
     btn.classList.add("active");
-    $("#panel-" + btn.dataset.tab).classList.add("active");
+    const panel = $("#panel-" + btn.dataset.tab);
+    // Yönlü geçiş animasyonu: sağdaki sekmeye gidince içerik sağdan kayar
+    const yon = TAB_SIRA.indexOf(btn.dataset.tab) > TAB_SIRA.indexOf(eskiTab) ? "kayar-sol" : "kayar-sag";
+    panel.classList.add("active", yon);
+    setTimeout(() => panel.classList.remove("kayar-sol", "kayar-sag"), 350);
     sesiDurdur();
     if (btn.dataset.tab === "ajanda") ajandayiCiz();
     if (btn.dataset.tab === "bugun") bugunuCiz();
-    window.scrollTo(0, 0);
+    window.scrollTo(0, kaydirmaHafiza[btn.dataset.tab] || 0);
   });
 });
 
@@ -735,11 +800,14 @@ function kelimeKartiHTML(item, key) {
 }
 
 function kelimeKartiBagla(kapsayici, item, key) {
-  kapsayici.querySelector(`[data-rol="dinle"][data-key="${key}"]`).onclick = () => {
+  const dinleBtn = kapsayici.querySelector(`[data-rol="dinle"][data-key="${key}"]`);
+  dinleBtn.onclick = () => {
+    if (dinleBtn._lp) { dinleBtn._lp = false; return; } // basılı tutma zaten yavaş okudu
     seslendir(item.ar);
     S.stats.dinleme++; kaydet();
     hedefTamamla("dinleme");
   };
+  uzunBasincaYavas(dinleBtn, () => item.ar);
   const micBtn = kapsayici.querySelector(`[data-rol="soyle"][data-key="${key}"]`);
   const alan = kapsayici.querySelector(`.telaffuz-alani[data-key="${key}"]`);
   micBtn.onclick = () => {
@@ -1424,7 +1492,12 @@ function telaffuzKartGoster() {
       </div>
       <div id="telDurum" style="text-align:left"></div>
     </div>`;
-  $("#telSes").onclick = () => { seslendir(item.ar); hedefTamamla("dinleme"); };
+  $("#telSes").onclick = () => {
+    if ($("#telSes")._lp) { $("#telSes")._lp = false; return; }
+    seslendir(item.ar);
+    hedefTamamla("dinleme");
+  };
+  uzunBasincaYavas($("#telSes"), () => item.ar);
   $("#telGec").onclick = () => { tseans.i++; telaffuzKartGoster(); };
   $("#telMic").onclick = () => {
     const mic = $("#telMic");
@@ -1895,10 +1968,12 @@ function rehberiCiz() {
     </div>`).join("");
   $$(".rehber-ifade").forEach(btn => {
     btn.onclick = () => {
+      if (btn._lp) { btn._lp = false; return; }
       const f = CEP_REHBERI[+btn.dataset.kat].ifadeler[+btn.dataset.i];
       seslendir(f.ar);
       titret(20);
     };
+    uzunBasincaYavas(btn, () => CEP_REHBERI[+btn.dataset.kat].ifadeler[+btn.dataset.i].ar);
   });
   $$(".rehber-alt").forEach(btn => {
     btn.onclick = async () => {
@@ -2119,6 +2194,7 @@ function baslat() {
   bugunuCiz();
   dersAc(gununDersi().id);
   rehberiCiz();
+  srsNoktaGuncelle();
   sesleriYukle();
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});

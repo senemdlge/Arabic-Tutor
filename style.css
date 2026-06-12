@@ -683,3 +683,22 @@ body.karanlik .takvim-gun.s3 { background: #7a90c4; box-shadow: 0 0 8px rgba(122
 .canli-btnler { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
 .canli-btnler .btn { padding: 18px 10px; font-size: 1rem; border-radius: 18px; }
 #canliLog { margin-top: 8px; }
+
+/* ---------- Native dokunuş hissi ---------- */
+html, body { overscroll-behavior-y: none; }
+button, .tab, .mod-kart, .quiz-secenek, .esl-kart, .rehber-ifade, .fkart, .balon {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+.tab { position: relative; }
+.tab .nokta {
+  position: absolute; top: 3px; right: 16%;
+  background: var(--kirmizi); color: #fff;
+  font-size: .58rem; font-weight: 800;
+  min-width: 16px; height: 16px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px; box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.panel.active.kayar-sol { animation: kayarSol .3s cubic-bezier(.2,.8,.3,1); }
+.panel.active.kayar-sag { animation: kayarSag .3s cubic-bezier(.2,.8,.3,1); }
+@keyframes kayarSol { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+@keyframes kayarSag { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
