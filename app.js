@@ -418,7 +418,7 @@ function kayitDinle({ dil, durumEl, sonuc, bitti, ipucu }) {
         const fd = new FormData();
         fd.append("file", blob, "konusma." + (blob.type.includes("mp4") ? "mp4" : "webm"));
         fd.append("model", "gpt-4o-mini-transcribe");
-        fd.append("language", dil.slice(0, 2));
+        if (dil && dil !== "auto") fd.append("language", dil.slice(0, 2)); // "auto": dili kendisi algılar
         if (dil.startsWith("ar")) {
           fd.append("prompt", (ipucu ? ipucu + " — " : "") + "كلام باللهجة المصرية، اكتبه بالحروف العربية.");
         }
@@ -465,6 +465,7 @@ function tarayiciDinle({ dil, durumEl, sonuc, bitti }) {
   const r = new SpeechRec();
   // iOS'un yerleşik tanıması ar-EG'yi bilmiyor; Arapça için ar-SA kullan
   if (/^ar/.test(dil) && /iPad|iPhone|iPod/.test(navigator.userAgent)) dil = "ar-SA";
+  if (dil === "auto") dil = kaynakKonusmaDili(); // yerleşik tanıma otomatik dil bilmez
   r.lang = dil;
   r.interimResults = true;
   r.continuous = true;
@@ -1955,7 +1956,8 @@ function canliTur(taraf) {
   }
   btn.classList.add("dinliyor");
   btn._durdur = dinle({
-    dil: taraf === "o" ? "ar-EG" : kaynakKonusmaDili(),
+    // "ben" tarafında dil dayatılmaz: Türkçe de İngilizce de konuşulabilir
+    dil: taraf === "o" ? "ar-EG" : "auto",
     durumEl: $("#canliDurum"),
     sonuc: async (alternatifler) => {
       const soylenen = alternatifler[0];
