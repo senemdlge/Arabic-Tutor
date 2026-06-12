@@ -264,6 +264,7 @@ function sesiDurdur() {
   calmaAktif = false;
   speechSynthesis.cancel();
   oaiPlayer.pause();
+  if (typeof canliOto !== "undefined" && canliOto) otoKonusmaDurdur();
 }
 
 async function seslendir(arapca) {
@@ -1983,6 +1984,153 @@ function canliTur(taraf) {
 }
 $("#canliOnlar").onclick = () => canliTur("o");
 $("#canliBen").onclick = () => canliTur("ben");
+
+
+// ===================== 🔄 OTOMATİK SOHBET MODU =====================
+// Google Translate'in sohbet modu gibi: sürekli dinler, ses seviyesinden konuşmayı
+// yakalar, susunca çözümler; dili Arap harflerinden algılar, iki yöne de çevirir.
+let canliOto = null;
+const bekleMs = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function otoCozumle(blob) {
+  const fd = new FormData();
+  fd.append("file", blob, "konusma." + (blob.type.includes("mp4") ? "mp4" : "webm"));
+  fd.append("model", "gpt-4o-mini-transcribe");
+  // dil parametresi YOK: otomatik algılama (Arapça mı, ana dil mi)
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + S.oaiKey },
+    body: fd
+  });
+  if (!res.ok) throw new Error("stt " + res.status);
+  return (((await res.json()).text) || "").trim();
+}
+
+// Anadil seslendirmesini bitene kadar bekleyerek çal (mikrofon kendi sesimizi duymasın)
+async function anadilSeslendirBekle(metin) {
+  if (!S.oaiKey) return;
+  try {
+    const url = await oaiSesUrl(metin, "Speak naturally and clearly in " + (S.dil === "en" ? "English" : "Turkish") + ".");
+    oaiPlayer.src = url;
+    oaiPlayer.playbackRate = 1;
+    await new Promise(res => {
+      oaiPlayer.onended = res;
+      oaiPlayer.onpause = res;
+      setTimeout(res, 20000);
+      oaiPlayer.play().catch(res);
+    });
+  } catch (e) {}
+}
+
+// Ses seviyesini izleyerek tek bir konuşma parçası yakala (VAD)
+async function konusmaYakala(co) {
+  const veri = new Uint8Array(co.analyser.fftSize);
+  const seviye = () => {
+    co.analyser.getByteTimeDomainData(veri);
+    let top = 0;
+    for (const v of veri) { const f = (v - 128) / 128; top += f * f; }
+    return Math.sqrt(top / veri.length);
+  };
+  // Konuşma başlamasını bekle (sınırsız — mod kapatılana dek)
+  while (!co.durduruldu) {
+    if (seviye() > 0.04) break;
+    await bekleMs(80);
+  }
+  if (co.durduruldu) return null;
+  const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+             : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "";
+  const rec = mime ? new MediaRecorder(co.stream, { mimeType: mime }) : new MediaRecorder(co.stream);
+  const parcalar = [];
+  rec.ondataavailable = (e) => { if (e.data && e.data.size) parcalar.push(e.data); };
+  const durdu = new Promise(r => { rec.onstop = r; });
+  rec.start();
+  let sessizBas = null;
+  const kayitBas = Date.now();
+  while (!co.durduruldu && Date.now() - kayitBas < 15000) {
+    await bekleMs(100);
+    if (seviye() > 0.03) sessizBas = null;                       // hâlâ konuşuyor
+    else if (!sessizBas) sessizBas = Date.now();
+    else if (Date.now() - sessizBas > 1200) break;               // 1.2 sn sessizlik: bitti
+  }
+  try { rec.stop(); } catch (e) {}
+  await durdu;
+  const blob = new Blob(parcalar, { type: rec.mimeType || "audio/webm" });
+  return blob.size > 2500 ? blob : null;
+}
+
+async function otoDongu(co) {
+  while (!co.durduruldu) {
+    $("#canliDurum").innerHTML = `<div class="dinleme-durum">${t("canli_oto_acik")}</div>`;
+    const blob = await konusmaYakala(co);
+    if (co.durduruldu) break;
+    if (!blob) continue;
+    $("#canliDurum").innerHTML = `<div class="dinleme-durum">${t("cozumleniyor")}</div>`;
+    try {
+      const metin = await otoCozumle(blob);
+      if (co.durduruldu) break;
+      if (!metin || metin.length < 2) continue;
+      $("#canliDurum").innerHTML = `<div class="dinleme-durum">${t("cevriliyor")}</div>`;
+      const arapcaMi = /[\u0600-\u06FF]/.test(metin);
+      if (arapcaMi) {
+        const ceviri = await hizliCevir(metin, false);
+        if (co.durduruldu) break;
+        canliBalon("o", ceviri, arapcaOkunus(metin));
+        await anadilSeslendirBekle(ceviri);
+      } else {
+        const ar = await hizliCevir(metin, true);
+        if (co.durduruldu) break;
+        canliBalon("sen", arapcaOkunus(ar) || ar, metin);
+        await seslendirAsync(ar);
+      }
+      S.stats.ceviri++; kaydet();
+    } catch (e) {
+      if (!co.durduruldu) $("#canliDurum").innerHTML = `<div class="telaffuz-sonuc kotu">${t("cev_hata")}</div>`;
+      await bekleMs(1200);
+    }
+  }
+}
+
+async function otoKonusmaBaslat() {
+  if (canliOto) { otoKonusmaDurdur(); return; }
+  if (!S.oaiKey) {
+    $("#canliDurum").innerHTML = `<div class="telaffuz-sonuc orta">${t("canli_anahtar")}</div>`;
+    return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    $("#canliDurum").innerHTML = `<div class="telaffuz-sonuc kotu">${t("err_izin")}</div>`;
+    return;
+  }
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  await ctx.resume();
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 512;
+  ctx.createMediaStreamSource(stream).connect(analyser);
+  canliOto = { stream, ctx, analyser, durduruldu: false };
+  const btn = $("#canliOtoBtn");
+  btn.classList.add("dinliyor");
+  btn.textContent = t("canli_oto_acik");
+  otoDongu(canliOto).finally(() => { if (canliOto && canliOto.durduruldu) {} });
+}
+
+function otoKonusmaDurdur() {
+  const co = canliOto;
+  canliOto = null;
+  if (!co) return;
+  co.durduruldu = true;
+  try { co.stream.getTracks().forEach(tr => tr.stop()); } catch (e) {}
+  try { co.ctx.close(); } catch (e) {}
+  speechSynthesis.cancel();
+  oaiPlayer.pause();
+  const btn = $("#canliOtoBtn");
+  if (btn) { btn.classList.remove("dinliyor"); btn.textContent = t("canli_oto"); }
+  const durum = $("#canliDurum");
+  if (durum) durum.innerHTML = "";
+}
+
+$("#canliOtoBtn").onclick = otoKonusmaBaslat;
 
 // ===================== CEP REHBERİ =====================
 function rehberiCiz() {
