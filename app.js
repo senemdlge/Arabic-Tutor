@@ -892,7 +892,7 @@ async function aiAlternatifler(item) {
   return liste;
 }
 
-function alternatifleriGoster(alan, liste, baslik) {
+function alternatifleriGoster(alan, liste, baslik, analizTusu = true) {
   alan.innerHTML = `
     <div class="telaffuz-sonuc iyi">
       <b>${baslik || t("alt_baslik")}</b>
@@ -901,11 +901,38 @@ function alternatifleriGoster(alan, liste, baslik) {
           <span><span class="okunus" style="font-size:1rem">${a.tr}</span><br>
           <span class="anlam" style="font-size:.85rem">${a.anlam}</span>
           <span class="arapca-yazi" style="font-size:1rem">${a.ar}</span></span>
-          <button class="btn ses" data-alt-ses="${i}">🔊</button>
-        </div>`).join("")}
+          <span style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn ses" data-alt-ses="${i}">🔊</button>
+            ${analizTusu ? `<button class="btn" data-alt-analiz="${i}" title="${t("cev_analiz")}">🔍</button>` : ""}
+          </span>
+        </div>
+        <div class="alt-analiz" data-alt-kap="${i}"></div>`).join("")}
     </div>`;
   alan.querySelectorAll("[data-alt-ses]").forEach(b => {
     b.onclick = () => { seslendir(liste[+b.dataset.altSes].ar); hedefTamamla("dinleme"); };
+  });
+  // 🔍 Her alternatifin kelime kelime dökümü (aç/kapa)
+  alan.querySelectorAll("[data-alt-analiz]").forEach(b => {
+    b.onclick = async () => {
+      const i = +b.dataset.altAnaliz;
+      const kap = alan.querySelector(`[data-alt-kap="${i}"]`);
+      if (kap.innerHTML) { kap.innerHTML = ""; return; }
+      kap.innerHTML = `<div class="dinleme-durum" style="margin-top:6px">${t("yukleniyor")}</div>`;
+      try {
+        const kelimeler = await kelimeAnalizi(liste[i].ar);
+        kap.innerHTML = kelimeler.map((k, j) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;margin-left:8px;padding-left:10px;border-left:2px solid var(--cizgi)">
+            <span><span class="okunus" style="font-size:.92rem">${k.tr}</span>
+            <span class="anlam" style="font-size:.82rem"> — ${k.anlam}</span></span>
+            <button class="btn ses" data-w="${j}" style="padding:6px 10px;min-width:auto">🔊</button>
+          </div>`).join("");
+        kap.querySelectorAll("[data-w]").forEach(wb => {
+          wb.onclick = () => seslendir(kelimeler[+wb.dataset.w].ar);
+        });
+      } catch (e) {
+        kap.innerHTML = `<div class="telaffuz-sonuc kotu">${t("analiz_hata")}</div>`;
+      }
+    };
   });
 }
 
@@ -1866,7 +1893,7 @@ $("#cevAnalizBtn").onclick = async () => {
   if (!S.oaiKey) { alan.innerHTML = `<div class="telaffuz-sonuc orta">${t("alt_anahtar")}</div>`; return; }
   alan.innerHTML = `<div class="dinleme-durum">${t("yukleniyor")}</div>`;
   try {
-    alternatifleriGoster(alan, await kelimeAnalizi(sonCeviri.metin), t("analiz_baslik"));
+    alternatifleriGoster(alan, await kelimeAnalizi(sonCeviri.metin), t("analiz_baslik"), false);
   } catch (e) {
     alan.innerHTML = `<div class="telaffuz-sonuc kotu">${t("analiz_hata")}</div>`;
   }
