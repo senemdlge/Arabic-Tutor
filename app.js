@@ -48,6 +48,15 @@ function tf(key, degerler) {
   for (const k in degerler) s = s.split("{" + k + "}").join(degerler[k]);
   return s;
 }
+
+// AI üretimlerinin uygulamadaki okunuş sistemiyle tutarlı olması için yönerge
+// (örn. أنا her yerde "ene" yazılmalı, "ana" değil)
+function fonetikYonerge() {
+  return S.dil === "en"
+    ? "English-based phonetics that MUST match these examples exactly: \u0623\u0646\u0627=ene, \u0625\u0632\u064a\u0643=izzayyek, \u062e\u0644\u0627\u0635=halaas, \u0634\u0643\u0631\u0627=shukran, \u0645\u0634 \u0639\u0627\u0631\u0641=mish aarif, \u0642\u0647\u0648\u0629='ahwa, \u0645\u0627\u0634\u064a=maashi. Rules: Egyptian fronted short a after plain consonants is written 'e' (ene, kelimeh-style), long vowels doubled (aa, ee, ii), shadda doubled consonant, \u0642 and hamza = ' , \u0634=sh, \u062e=kh, \u063a=gh, \u062c=g, word-final \u0629=a"
+    : "T\u00fcrk\u00e7e fonetik; \u015fu \u00f6rneklerle B\u0130REB\u0130R ayn\u0131 sistem kullan\u0131lmal\u0131: \u0623\u0646\u0627=ene, \u0625\u0632\u064a\u0643=izzeyyek, \u062e\u0644\u0627\u0635=halaas, \u0634\u0643\u0631\u0627=\u015fukran, \u0645\u0634 \u0639\u0627\u0631\u0641=mi\u015f aarif, \u0642\u0647\u0648\u0629=ahva, \u0645\u0627\u0634\u064a=mee\u015fi. Kurallar: d\u00fcz \u00fcns\u00fczden sonra k\u0131sa a 'e' yaz\u0131l\u0131r, uzun \u00fcnl\u00fc \u00e7ift harf (aa, ee), \u015fedde \u00e7ift \u00fcns\u00fcz, \u0642 ve hemze = ' , \u0634=\u015f, \u062e=h, \u063a=\u011f, kelime sonu \u0629=a"
+}
+
 // İçerik çevirisi: Türkçe metin -> seçili dile
 function cAl(s) {
   if (S.dil === "en") return EN_SOZLUK[s] || s;
@@ -861,7 +870,7 @@ function aiSatirlariCoz(metin) {
 async function aiAlternatifler(item) {
   if (altOnbellek.has(item.tr)) return altOnbellek.get(item.tr);
   const anaDil = S.dil === "en" ? "English" : "Turkish";
-  const fonetik = anaDil === "Turkish" ? "Turkish phonetics (ş, ğ, ı)" : "English phonetics (sh, kh)";
+  const fonetik = fonetikYonerge();
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
@@ -1350,7 +1359,7 @@ async function aiGonderMesaj(mesaj) {
   $("#aiDurum").innerHTML = `<div class="dinleme-durum">${t("ai_dusunuyor")}</div>`;
   aiGecmis.push({ role: "user", content: mesaj });
   const anaDil = S.dil === "en" ? "English" : "Turkish";
-  const sistem = `You are a warm, encouraging Egyptian Arabic tutor chatting with a beginner whose native language is ${anaDil}. Carry a natural conversation and ask simple follow-up questions. ALWAYS reply with 1-2 SHORT Egyptian Arabic sentences suitable for a beginner. Reply STRICTLY in this exact two-line format:\nYOU_SAID: ${anaDil} translation of what the user just said (if they spoke Arabic or transliterated Arabic; if they wrote in ${anaDil}, repeat it briefly)\nREPLY: ARABIC_SCRIPT ||| LATIN_TRANSLITERATION (use ${anaDil === "Turkish" ? "Turkish phonetics, e.g. ş, ğ, izzeyyek" : "English phonetics, e.g. sh, kh, izzayyak"}) ||| ${anaDil} translation (if the user made an Arabic mistake, add a very brief correction here in ${anaDil})\nThe user may write in ${anaDil}, in transliterated Arabic, or in Arabic script.`;
+  const sistem = `You are a warm, encouraging Egyptian Arabic tutor chatting with a beginner whose native language is ${anaDil}. Carry a natural conversation and ask simple follow-up questions. ALWAYS reply with 1-2 SHORT Egyptian Arabic sentences suitable for a beginner. Reply STRICTLY in this exact two-line format:\nYOU_SAID: ${anaDil} translation of what the user just said (if they spoke Arabic or transliterated Arabic; if they wrote in ${anaDil}, repeat it briefly)\nREPLY: ARABIC_SCRIPT ||| LATIN_TRANSLITERATION (${fonetikYonerge()}) ||| ${anaDil} translation (if the user made an Arabic mistake, add a very brief correction here in ${anaDil})\nThe user may write in ${anaDil}, in transliterated Arabic, or in Arabic script.`;
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -1397,7 +1406,7 @@ $("#aiHint").onclick = async () => {
   $("#aiDurum").innerHTML = `<div class="dinleme-durum">${t("yukleniyor")}</div>`;
   const sonAsistan = [...aiGecmis].reverse().find(m => m.role === "assistant");
   const anaDil = S.dil === "en" ? "English" : "Turkish";
-  const fonetik = anaDil === "Turkish" ? "Turkish phonetics (ş, ğ)" : "English phonetics (sh, kh)";
+  const fonetik = fonetikYonerge();
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -1816,7 +1825,7 @@ const analizOnbellek = new Map();
 async function kelimeAnalizi(ar) {
   if (analizOnbellek.has(ar)) return analizOnbellek.get(ar);
   const anaDil = S.dil === "en" ? "English" : "Turkish";
-  const fonetik = anaDil === "Turkish" ? "Turkish phonetics (ş, ğ, ı)" : "English phonetics (sh, kh)";
+  const fonetik = fonetikYonerge();
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "Authorization": "Bearer " + S.oaiKey, "Content-Type": "application/json" },
