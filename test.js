@@ -165,8 +165,8 @@ for (const dosya of ["index.html", "style.css", "app.js", "data.js", "en.js", "i
   if (!fs.existsSync(dosya)) fail(`Dosya yok: ${dosya}`);
   if (!sw.includes(dosya)) fail(`sw.js önbelleğinde eksik: ${dosya}`);
 }
-if (!html.includes('src="en.js"')) fail("index.html en.js'i yüklemiyor");
-const scriptSira = html.indexOf('src="data.js"') < html.indexOf('src="en.js"') && html.indexOf('src="en.js"') < html.indexOf('src="app.js"');
+if (!html.includes('src="en.js')) fail("index.html en.js'i yüklemiyor");
+const scriptSira = html.indexOf('src="data.js') < html.indexOf('src="en.js') && html.indexOf('src="en.js') < html.indexOf('src="app.js');
 if (!scriptSira) fail("Script yükleme sırası yanlış (data → en → app olmalı)");
 ok("Manifest, service worker ve script sırası doğru");
 
