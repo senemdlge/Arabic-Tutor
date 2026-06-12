@@ -611,6 +611,15 @@ function sekmeyeGit(ad) { $(`.tab[data-tab="${ad}"]`).click(); }
     const dx = d.clientX - sx, dy = d.clientY - sy;
     if (Date.now() - st > 600) return;                       // yavaş sürükleme: kaydırma değil
     if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // dikey kaydırmaya karışma
+    // Alt ekrandaysak (quiz, flashcard, diyalog...): sağa kaydırma = geri; sola kaydırma pasif
+    // (etkinlik ortasında kazara sekme değişmesin)
+    const aktifPanel = $(".panel.active");
+    const geriBtn = aktifPanel && [...aktifPanel.querySelectorAll("[data-geri], #dlgGeri")]
+      .find(b => b.offsetParent !== null);
+    if (geriBtn) {
+      if (dx > 0) { geriBtn.click(); titret(15); }
+      return;
+    }
     const aktif = $(".tab.active");
     if (!aktif) return;
     const i = sira.indexOf(aktif.dataset.tab) + (dx < 0 ? 1 : -1);
@@ -912,7 +921,7 @@ function quizSoruGoster() {
   const secenekler = karistir([q, ...yanlislar]);
   const alan = $("#quizAlani");
   alan.innerHTML = `
-    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <button class="btn geri" data-geri="pratik">${t("geri")}</button>
     <div class="quiz-ilerleme">${t("soru")} ${quiz.indeks + 1} / ${quiz.sorular.length} — ${t("dogru")}: ${quiz.dogru}</div>
     <div class="card">
       ${quiz.tur === "dinleme"
@@ -990,7 +999,7 @@ function eslestirmeBaslat() {
   let secili = null, kalan = havuz.length;
   const baslangic = Date.now();
   alan.innerHTML = `
-    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <button class="btn geri" data-geri="pratik">${t("geri")}</button>
     <p class="ipucu" style="text-align:center">${t("esl_ipucu")}</p>
     <div class="esl-izgara">
       ${kartlar.map((k, i) => `<button class="esl-kart" data-i="${i}">${k.deger}</button>`).join("")}
@@ -1073,7 +1082,7 @@ function flashcardGoster() {
   }
   const k = fdeste.kartlar[fdeste.indeks];
   alan.innerHTML = `
-    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <button class="btn geri" data-geri="pratik">${t("geri")}</button>
     <div class="quiz-ilerleme">${fdeste.indeks + 1} / ${fdeste.kartlar.length} ${fdeste.srsModu ? t("fc_akilli") : t("fc_rastgele")}</div>
     <div class="fkart" id="fkart">
       <div class="fkart-ic">
@@ -1493,7 +1502,7 @@ function hizTuruBaslat() {
     const yanlislar = karistir(havuz.filter(x => x.tr !== q.tr)).slice(0, 3);
     const secenekler = karistir([q, ...yanlislar]);
     alan.innerHTML = `
-      <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+      <button class="btn geri" data-geri="pratik">${t("geri")}</button>
       <div class="quiz-ilerleme">⏱️ ${t("sure")}: <b id="hizSure">${kalanSn}</b> — ${t("skor")}: <b>${skor}</b></div>
       <div class="sure-bar"><div id="hizBar" style="width:${(kalanSn / 60) * 100}%"></div></div>
       <div class="card">
@@ -1596,7 +1605,7 @@ function sayiSoruGoster() {
   }
   const secenekler = karistir([{ n, ...dogru }, ...yanlislar]);
   alan.innerHTML = `
-    <button class="btn geri" data-geri="pratik">${t("cik")}</button>
+    <button class="btn geri" data-geri="pratik">${t("geri")}</button>
     <div class="card">
       <p class="ipucu">${t("sayi_cevir_ipucu")}</p>
       <div style="display:flex;gap:8px">
